@@ -41,7 +41,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
   }, [country]);
   
   const simulator = useMemo(() => new PopulationSimulator(), []);
-  const projection = useMemo(() => simulator.simulate(params, 75), [params, simulator]);
+  const projection = useMemo(() => simulator.simulate(params, 125), [params, simulator]); // Extended to 2150 (125 years)
   
   // Time-lapse animation
   useEffect(() => {
@@ -49,13 +49,13 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
     
     const interval = setInterval(() => {
       setCurrentYear(prev => {
-        if (prev >= 2100) {
+        if (prev >= 2150) {
           setIsPlaying(false);
-          return 2100;
+          return 2150;
         }
         return prev + 1;
       });
-    }, 50); // Fixed speed: 50ms per year
+    }, 40); // Fixed speed: 40ms per year for 125 years
     
     return () => clearInterval(interval);
   }, [isPlaying]);
@@ -101,8 +101,9 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
     return null;
   }, [projection.data]);
   
-  const populationIn2100 = projection.data[projection.data.length - 1]?.totalPopulation || 0;
-  const populationChange = ((populationIn2100 - country.population) / country.population * 100).toFixed(1);
+  const populationIn2150 = projection.data[projection.data.length - 1]?.totalPopulation || 0;
+  const populationChange = ((populationIn2150 - country.population) / country.population * 100).toFixed(1);
+  const simulationComplete = currentYear >= 2150; // Check if simulation reached end
   
   if (!isOpen) return null;
   
@@ -133,7 +134,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                 <span className="text-4xl">{country.flag}</span>
                 {country.name} Population Simulator
               </h2>
-              <p className="text-gray-400 mt-1">Projecting demographic future from 2025 to 2100</p>
+              <p className="text-gray-400 mt-1">Projecting demographic future from 2025 to 2150</p>
             </div>
             <button
               onClick={onClose}
@@ -160,7 +161,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                 onClick={startTimeLapse}
                 className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all"
               >
-                ▶ Start Time-Lapse
+                ▶ Run Simulation
               </button>
               <button
                 onClick={() => setIsPlaying(!isPlaying)}
@@ -184,7 +185,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
               <input
                 type="range"
                 min="2025"
-                max="2100"
+                max="2150"
                 step="1"
                 value={currentYear}
                 onChange={(e) => {
@@ -198,6 +199,8 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                 <span>2050</span>
                 <span>2075</span>
                 <span>2100</span>
+                <span>2125</span>
+                <span>2150</span>
               </div>
             </div>
           </div>
@@ -208,7 +211,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
             {!hasStarted ? (
               <div className="h-[300px] flex items-center justify-center">
                 <div className="text-center">
-                  <p className="text-gray-400 text-lg mb-4">Press "Start Time-Lapse" to begin simulation</p>
+                  <p className="text-gray-400 text-lg mb-4">Press "Run Simulation" to begin</p>
                   <p className="text-gray-500 text-sm">Adjust parameters below to see different scenarios</p>
                 </div>
               </div>
@@ -331,15 +334,15 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
             </div>
           </div>
           
-          {/* Results - Only show after simulation starts */}
-          {hasStarted && (
+          {/* Results - Only show after simulation completes */}
+          {simulationComplete && (
             <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 rounded-2xl p-6 border border-purple-500/30">
               <h3 className="text-xl font-semibold text-white mb-4">Projection Results</h3>
               <div className="grid grid-cols-3 gap-6">
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Population in 2100</p>
+                  <p className="text-gray-400 text-sm mb-1">Population in 2150</p>
                   <p className="text-3xl font-bold text-white">
-                    {populationIn2100.toFixed(1)}M
+                    {populationIn2150.toFixed(1)}M
                   </p>
                   <p className={`text-sm mt-1 ${Number(populationChange) < 0 ? 'text-red-400' : 'text-green-400'}`}>
                     {Number(populationChange) > 0 ? '+' : ''}{populationChange}% from 2025
