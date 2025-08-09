@@ -64,6 +64,8 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
   // Use useRef to persist the counter across renders
   const unitIdCounter = useRef(0);
   // Game state
+  const [gameStarted, setGameStarted] = useState(false);
+  const [difficulty, setDifficulty] = useState<'easy' | 'normal' | 'hard' | 'insane'>('normal');
   const [gameTime, setGameTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [gameSpeed, setGameSpeed] = useState(1);
@@ -155,11 +157,29 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
   const [zergCasualties, setZergCasualties] = useState(0);
   const [gameWinner, setGameWinner] = useState<string | null>(null);
 
+  // Difficulty multipliers
+  const getDifficultyMultipliers = () => {
+    switch(difficulty) {
+      case 'easy':
+        return { zergMinerals: 0.5, zergGas: 0.5, zergBuildSpeed: 0.8, zergDamage: 0.8 };
+      case 'normal':
+        return { zergMinerals: 0.8, zergGas: 0.8, zergBuildSpeed: 1.0, zergDamage: 1.0 };
+      case 'hard':
+        return { zergMinerals: 1.2, zergGas: 1.2, zergBuildSpeed: 1.3, zergDamage: 1.2 };
+      case 'insane':
+        return { zergMinerals: 2.0, zergGas: 2.0, zergBuildSpeed: 1.5, zergDamage: 1.5 };
+      default:
+        return { zergMinerals: 0.8, zergGas: 0.8, zergBuildSpeed: 1.0, zergDamage: 1.0 };
+    }
+  };
+
   // Game loop
   useEffect(() => {
-    if (!isPaused && isOpen) {
+    if (!isPaused && isOpen && gameStarted) {
       const interval = setInterval(() => {
         setGameTime(prev => prev + 1);
+        
+        const difficultyMods = getDifficultyMultipliers();
         
         // Resource gathering (based on worker count)
         const terranWorkers = terranUnits.filter(u => u.type === 'scv').length;
@@ -173,8 +193,8 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
         
         setZergResources(prev => ({
           ...prev,
-          minerals: Math.min(9999, prev.minerals + zergWorkers * 0.8 * gameSpeed),
-          vespeneGas: Math.min(9999, prev.vespeneGas + Math.floor(zergWorkers * 0.4) * gameSpeed)
+          minerals: Math.min(9999, prev.minerals + zergWorkers * 0.8 * gameSpeed * difficultyMods.zergMinerals),
+          vespeneGas: Math.min(9999, prev.vespeneGas + Math.floor(zergWorkers * 0.4 * difficultyMods.zergGas) * gameSpeed)
         }));
         
         // Update production queues
@@ -192,7 +212,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
         
         setZergQueue(prev => prev.map(item => ({
           ...item,
-          progress: Math.min(100, item.progress + (100 / UNIT_STATS[item.unit as keyof typeof UNIT_STATS].buildTime) * gameSpeed)
+          progress: Math.min(100, item.progress + (100 / UNIT_STATS[item.unit as keyof typeof UNIT_STATS].buildTime) * gameSpeed * difficultyMods.zergBuildSpeed)
         })).filter(item => {
           if (item.progress >= 100) {
             // Unit completed
@@ -216,57 +236,99 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
           // Zerg AI Strategy Phases
           const gamePhase = gameTime < 30 ? 'early' : gameTime < 90 ? 'mid' : 'late';
           
-          // SUPPLY CHECK - Build Overlords when needed
-          if (zergResources.supply >= zergResources.maxSupply - 2 && zergResources.minerals >= 100) {
-            setZergResources(prev => ({
-              ...prev,
-              minerals: prev.minerals - 100,
-              maxSupply: prev.maxSupply + 8
-            }));
-            addMessage('🎈 Zerg spawned Overlord! +8 supply');
+          // SUPPLY CHECK - Build Overlords proactively based on difficulty
+          const supplyBuffer = difficulty === 'insane' ? 20 : difficulty === 'hard' ? 12 : 6;
+          const needSupply = zergResources.supply >= zergResources.maxSupply - supplyBuffer;
+          
+          // In insane mode, build multiple overlords at once
+          if (needSupply && zergResources.minerals >= 100) {
+            const overlordCount = difficulty === 'insane' ? Math.min(4, Math.floor(zergResources.minerals / 100)) : 
+                                 difficulty === 'hard' ? Math.min(2, Math.floor(zergResources.minerals / 100)) : 1;
+            
+            let overlordsMade = 0;
+            let currentMinerals = zergResources.minerals;
+            for (let i = 0; i < overlordCount && i < 4; i++) { // Max 4 overlords at once
+              if (currentMinerals >= 100) {
+                overlordsMade++;
+                currentMinerals -= 100;
+              }
+            }
+            
+            if (overlordsMade > 0) {
+              setZergResources(prev => ({
+                ...prev,
+                minerals: Math.max(0, prev.minerals - (100 * overlordsMade)),
+                maxSupply: prev.maxSupply + (8 * overlordsMade)
+              }));
+              addMessage(`🎈 Zerg spawned ${overlordsMade} Overlord${overlordsMade > 1 ? 's' : ''}! +${8 * overlordsMade} supply`);
+            }
           }
+          
+          // In insane/hard mode, queue multiple units in parallel
+          const maxQueueSize = difficulty === 'insane' ? 6 : difficulty === 'hard' ? 4 : 2;
           
           // Early game: Focus on economy and basic units
           if (gamePhase === 'early') {
-            if (drones < 12 && zergResources.minerals >= 50) {
+            if (drones < 12 && zergResources.minerals >= 50 && zergQueue.length < maxQueueSize) {
               queueUnit('zerg', 'drone');
-            } else if (zergResources.minerals >= 25 && zergQueue.length < 2) {
-              // Mass cheap zerglings early
+            } 
+            // Parallel zergling production in higher difficulties
+            let zerglingCount = 0;
+            while (zergResources.minerals >= 25 && zergQueue.length < maxQueueSize && 
+                   zergResources.supply + (0.5 * (zergQueue.length + 1)) <= zergResources.maxSupply &&
+                   zerglingCount < 3) {
               queueUnit('zerg', 'zergling');
-              if (zergResources.minerals >= 50) {
+              zerglingCount++;
+            }
+          }
+          // Mid game: Transition to roaches and hydralisks with parallel production
+          else if (gamePhase === 'mid') {
+            if (drones < 16 && zergResources.minerals >= 50 && Math.random() > 0.6 && zergQueue.length < maxQueueSize) {
+              queueUnit('zerg', 'drone');
+            }
+            
+            // Queue multiple units in parallel for insane difficulty
+            let queued = 0;
+            const maxQueueAttempts = 5; // Prevent infinite loop
+            while (zergQueue.length + queued < maxQueueSize && 
+                   zergResources.supply < zergResources.maxSupply - 2 && 
+                   queued < maxQueueAttempts) {
+              if (zergResources.minerals >= 75 && zergResources.vespeneGas >= 25 && roaches < 12) {
+                queueUnit('zerg', 'roach');
+                queued++;
+              } else if (zergResources.minerals >= 100 && zergResources.vespeneGas >= 50 && hydralisks < 8) {
+                queueUnit('zerg', 'hydralisk');
+                queued++;
+              } else if (zergResources.minerals >= 25) {
                 queueUnit('zerg', 'zergling');
+                queued++;
+              } else {
+                break;
               }
             }
           }
-          // Mid game: Transition to roaches and hydralisks
-          else if (gamePhase === 'mid') {
-            if (drones < 16 && zergResources.minerals >= 50 && Math.random() > 0.6) {
-              queueUnit('zerg', 'drone');
-            } else if (zergResources.minerals >= 75 && zergResources.vespeneGas >= 25 && roaches < 8) {
-              // Prioritize roaches for tankiness
-              queueUnit('zerg', 'roach');
-            } else if (zergResources.minerals >= 100 && zergResources.vespeneGas >= 50 && hydralisks < 6) {
-              // Add hydralisks for DPS
-              queueUnit('zerg', 'hydralisk');
-            } else if (zergResources.minerals >= 25) {
-              // Fill with zerglings
-              queueUnit('zerg', 'zergling');
-            }
-          }
-          // Late game: Tech to ultralisks
+          // Late game: Tech to ultralisks with massive parallel production
           else {
-            if (zergResources.minerals >= 300 && zergResources.vespeneGas >= 200 && ultralisks < 3) {
-              // Build powerful ultralisks
-              queueUnit('zerg', 'ultralisk');
-            } else if (zergResources.minerals >= 100 && zergResources.vespeneGas >= 50) {
-              // Continue hydralisk production
-              queueUnit('zerg', 'hydralisk');
-            } else if (zergResources.minerals >= 75 && zergResources.vespeneGas >= 25) {
-              // Roaches as backbone
-              queueUnit('zerg', 'roach');
-            } else if (zergResources.minerals >= 25) {
-              // Zerglings as filler
-              queueUnit('zerg', 'zergling');
+            let queued = 0;
+            const maxQueueAttempts = 6; // Prevent infinite loop
+            while (zergQueue.length + queued < maxQueueSize && 
+                   zergResources.supply < zergResources.maxSupply - 4 &&
+                   queued < maxQueueAttempts) {
+              if (zergResources.minerals >= 300 && zergResources.vespeneGas >= 200 && ultralisks < 6) {
+                queueUnit('zerg', 'ultralisk');
+                queued++;
+              } else if (zergResources.minerals >= 100 && zergResources.vespeneGas >= 50) {
+                queueUnit('zerg', 'hydralisk');
+                queued++;
+              } else if (zergResources.minerals >= 75 && zergResources.vespeneGas >= 25) {
+                queueUnit('zerg', 'roach');
+                queued++;
+              } else if (zergResources.minerals >= 25) {
+                queueUnit('zerg', 'zergling');
+                queued++;
+              } else {
+                break;
+              }
             }
           }
           
@@ -287,7 +349,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
           if (terranArmy.length > 0 && zergArmy.length > 0) {
             // Calculate total damage with armor reduction
             const terranDamage = terranArmy.reduce((sum, unit) => sum + unit.damage, 0);
-            const zergDamage = zergArmy.reduce((sum, unit) => sum + unit.damage, 0);
+            const zergDamage = zergArmy.reduce((sum, unit) => sum + unit.damage * difficultyMods.zergDamage, 0);
             
             // Apply damage to units
             let terranKills = 0;
@@ -338,21 +400,81 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
             }
           }
           
-          // Check victory conditions
+          // Check victory conditions - more comprehensive with minimum time requirement
           const terranArmySize = terranUnits.filter(u => u.type !== 'scv').length;
           const zergArmySize = zergUnits.filter(u => u.type !== 'drone').length;
           const terranWorkers = terranUnits.filter(u => u.type === 'scv').length;
           const zergWorkers = zergUnits.filter(u => u.type === 'drone').length;
+          const terranProduction = terranQueue.length > 0;
+          const zergProduction = zergQueue.length > 0;
           
-          // Victory if enemy has no army and no workers, or just 1 worker left
-          if (terranArmySize === 0 && terranWorkers <= 1 && !gameWinner) {
-            setGameWinner('ZERG');
-            addMessage('🎉 ZERG VICTORY! The swarm has consumed Mars!');
-            setIsPaused(true);
-          } else if (zergArmySize === 0 && zergWorkers <= 1 && !gameWinner) {
-            setGameWinner('TERRAN');
-            addMessage('🎉 TERRAN VICTORY! Humanity prevails on Mars!');
-            setIsPaused(true);
+          // Minimum game time requirement: 3 minutes (180 seconds)
+          const MIN_GAME_TIME = 180;
+          const canDeclareVictory = gameTime >= MIN_GAME_TIME;
+          
+          // Victory conditions:
+          // 1. Must play for at least 3 minutes
+          // 2. Enemy has no army and cannot produce (no workers or resources)
+          // 3. Enemy has been reduced to 0 units
+          // 4. Overwhelming force advantage (10:1 ratio or 100+ unit difference)
+          if (!gameWinner && canDeclareVictory) {
+            // Total annihilation victory
+            if ((terranArmySize === 0 && terranWorkers === 0) || 
+                (terranArmySize === 0 && terranWorkers <= 2 && terranResources.minerals < 50 && !terranProduction)) {
+              setGameWinner('ZERG');
+              addMessage('🎉 ZERG VICTORY! The swarm has consumed the Moon!');
+              setIsPaused(true);
+            } else if ((zergArmySize === 0 && zergWorkers === 0) || 
+                      (zergArmySize === 0 && zergWorkers <= 2 && zergResources.minerals < 50 && !zergProduction)) {
+              setGameWinner('TERRAN');
+              addMessage('🎉 TERRAN VICTORY! Humanity prevails on the Moon!');
+              setIsPaused(true);
+            } 
+            // Overwhelming force victory - reduced requirements
+            else if (terranArmySize > 50 && zergArmySize < 5) {
+              setGameWinner('TERRAN');
+              addMessage('🎉 TERRAN VICTORY! Overwhelming force achieved!');
+              setIsPaused(true);
+            } else if (zergArmySize > 50 && terranArmySize < 5) {
+              setGameWinner('ZERG');
+              addMessage('🎉 ZERG VICTORY! The swarm is unstoppable!');
+              setIsPaused(true);
+            }
+            // Massive army difference victory
+            else if (terranArmySize > zergArmySize + 100) {
+              setGameWinner('TERRAN');
+              addMessage('🎉 TERRAN VICTORY! Decisive military superiority!');
+              setIsPaused(true);
+            } else if (zergArmySize > terranArmySize + 100) {
+              setGameWinner('ZERG');
+              addMessage('🎉 ZERG VICTORY! The swarm overwhelms!');
+              setIsPaused(true);
+            }
+            // 10:1 ratio with minimum army size
+            else if (terranArmySize >= 20 && terranArmySize > zergArmySize * 10) {
+              setGameWinner('TERRAN');
+              addMessage('🎉 TERRAN VICTORY! Enemy forces decimated!');
+              setIsPaused(true);
+            } else if (zergArmySize >= 20 && zergArmySize > terranArmySize * 10) {
+              setGameWinner('ZERG');
+              addMessage('🎉 ZERG VICTORY! Terran forces crushed!');
+              setIsPaused(true);
+            }
+          } else if (!gameWinner && !canDeclareVictory) {
+            // Check if victory conditions are met but time hasn't passed
+            const wouldWinTerran = (zergArmySize === 0 && zergWorkers === 0) || 
+                                  (zergArmySize === 0 && zergWorkers <= 2 && zergResources.minerals < 50 && !zergProduction) ||
+                                  (terranArmySize > zergArmySize * 10 && zergWorkers < 3);
+            const wouldWinZerg = (terranArmySize === 0 && terranWorkers === 0) || 
+                                (terranArmySize === 0 && terranWorkers <= 2 && terranResources.minerals < 50 && !terranProduction) ||
+                                (zergArmySize > terranArmySize * 10 && terranWorkers < 3);
+            
+            if (wouldWinTerran || wouldWinZerg) {
+              const timeRemaining = MIN_GAME_TIME - gameTime;
+              if (gameTime % 10 === 0) { // Show message every 10 seconds
+                addMessage(`⏰ Victory conditions met! ${timeRemaining} seconds until victory can be declared (Min 3 minutes required)`);
+              }
+            }
           }
         }
         
@@ -360,7 +482,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
       
       return () => clearInterval(interval);
     }
-  }, [isPaused, isOpen, gameSpeed, terranUnits, zergUnits, zergResources, gameTime, gameWinner]);
+  }, [isPaused, isOpen, gameSpeed, terranUnits, zergUnits, zergResources, gameTime, gameWinner, gameStarted, difficulty]);
   
   // Create a new unit
   const createUnit = (faction: 'terran' | 'zerg', unitType: Unit['type']) => {
@@ -438,6 +560,16 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
   
+  // Reset game when difficulty changes or game starts
+  const startGame = () => {
+    setGameTime(0);
+    setTerranCasualties(0);
+    setZergCasualties(0);
+    setGameWinner(null);
+    setIsPaused(false);
+    setGameStarted(true);
+  };
+
   if (!isOpen) return null;
   
   return (
@@ -449,19 +581,342 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95"
         onClick={onClose}
       >
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          className="relative bg-gray-900 rounded-2xl w-full max-w-7xl h-[90vh] overflow-hidden border border-cyan-500/30"
-          onClick={(e) => e.stopPropagation()}
-        >
+        {!gameStarted ? (
+          // Enhanced Start Screen with Story
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            className="relative bg-gradient-to-b from-gray-900 via-blue-950/20 to-gray-900 rounded-3xl max-w-3xl border border-cyan-500/20 shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Animated background pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute inset-0" style={{
+                backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(6,182,212,0.1) 35px, rgba(6,182,212,0.1) 70px)`,
+              }} />
+            </div>
+            
+            {/* Glowing orbs */}
+            <motion.div 
+              className="absolute -top-20 -right-20 w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl"
+              animate={{ 
+                scale: [1, 1.2, 1],
+                opacity: [0.2, 0.3, 0.2]
+              }}
+              transition={{ duration: 5, repeat: Infinity }}
+            />
+            <motion.div 
+              className="absolute -bottom-20 -left-20 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl"
+              animate={{ 
+                scale: [1.2, 1, 1.2],
+                opacity: [0.2, 0.3, 0.2]
+              }}
+              transition={{ duration: 5, repeat: Infinity }}
+            />
+            
+            <div className="relative p-8">
+              {/* Title Section - Compact */}
+              <div className="text-center mb-6">
+                <motion.div
+                  initial={{ y: -20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="flex items-center justify-center gap-4"
+                >
+                  <motion.div 
+                    className="text-5xl"
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+                  >
+                    🌙
+                  </motion.div>
+                  <div>
+                    <h1 className="text-5xl font-black mb-1">
+                      <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-500 bg-clip-text text-transparent">
+                        LUNAR DEFENSE
+                      </span>
+                    </h1>
+                    <div className="text-lg text-cyan-400 font-semibold">
+                      OPERATION: LAST STAND
+                    </div>
+                  </div>
+                </motion.div>
+                
+                {/* Story/Mission Briefing - Compact */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-black/40 backdrop-blur-sm rounded-xl p-4 mb-6 border border-cyan-500/20"
+                >
+                  <div className="flex items-start gap-3 mb-3">
+                    <span className="text-xl">⚠️</span>
+                    <div className="text-left flex-1">
+                      <h3 className="text-base font-bold text-red-400 mb-1">HUMANITY IN CRISIS</h3>
+                      <p className="text-gray-300 text-xs leading-relaxed mb-2">
+                        Earth&apos;s population crisis has reached critical levels. An alien swarm approaches our lunar colony.
+                      </p>
+                      <p className="text-cyan-300 text-xs font-semibold">
+                        📡 MISSION: Defend the Moon base - humanity&apos;s last hope for survival!
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center py-2 bg-black/30 rounded">
+                      <div className="text-xl mb-1">🌍</div>
+                      <div className="text-xs text-gray-400">Earth</div>
+                      <div className="text-red-400 font-bold text-xs">DECLINING</div>
+                    </div>
+                    <div className="text-center py-2 bg-black/30 rounded">
+                      <div className="text-xl mb-1">👽</div>
+                      <div className="text-xs text-gray-400">Threat</div>
+                      <div className="text-purple-400 font-bold text-xs">IMMINENT</div>
+                    </div>
+                    <div className="text-center py-2 bg-black/30 rounded">
+                      <div className="text-xl mb-1">🚀</div>
+                      <div className="text-xs text-gray-400">Colony</div>
+                      <div className="text-cyan-400 font-bold text-xs">LAST HOPE</div>
+                    </div>
+                  </div>
+                </motion.div>
+                
+                {/* Difficulty Selection - Compact */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <h3 className="text-xl font-bold text-cyan-400 mb-3 text-center">
+                    SELECT THREAT LEVEL
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <motion.button
+                      whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(34,197,94,0.3)' }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setDifficulty('easy')}
+                      className={`relative p-3 rounded-xl border-2 transition-all overflow-hidden ${
+                        difficulty === 'easy' 
+                          ? 'border-green-400 bg-gradient-to-br from-green-900/40 to-green-950/40' 
+                          : 'border-gray-700 bg-gray-900/50 hover:border-green-500/50'
+                      }`}
+                    >
+                      {difficulty === 'easy' && (
+                        <motion.div 
+                          className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-transparent"
+                          animate={{ x: ['-100%', '100%'] }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                        />
+                      )}
+                      <div className="relative">
+                        <div className="text-2xl mb-1">🛡️</div>
+                        <div className="font-bold text-base text-green-400">ROOKIE</div>
+                        <div className="text-xs text-gray-400">Scout force</div>
+                      </div>
+                    </motion.button>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(59,130,246,0.3)' }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setDifficulty('normal')}
+                      className={`relative p-3 rounded-xl border-2 transition-all overflow-hidden ${
+                        difficulty === 'normal' 
+                          ? 'border-blue-400 bg-gradient-to-br from-blue-900/40 to-blue-950/40' 
+                          : 'border-gray-700 bg-gray-900/50 hover:border-blue-500/50'
+                      }`}
+                    >
+                      {difficulty === 'normal' && (
+                        <motion.div 
+                          className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-transparent"
+                          animate={{ x: ['-100%', '100%'] }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                        />
+                      )}
+                      <div className="relative">
+                        <div className="text-2xl mb-1">⚔️</div>
+                        <div className="font-bold text-base text-blue-400">SOLDIER</div>
+                        <div className="text-xs text-gray-400">Standard invasion</div>
+                      </div>
+                    </motion.button>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(251,146,60,0.3)' }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setDifficulty('hard')}
+                      className={`relative p-3 rounded-xl border-2 transition-all overflow-hidden ${
+                        difficulty === 'hard' 
+                          ? 'border-orange-400 bg-gradient-to-br from-orange-900/40 to-orange-950/40' 
+                          : 'border-gray-700 bg-gray-900/50 hover:border-orange-500/50'
+                      }`}
+                    >
+                      {difficulty === 'hard' && (
+                        <motion.div 
+                          className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-transparent"
+                          animate={{ x: ['-100%', '100%'] }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                        />
+                      )}
+                      <div className="relative">
+                        <div className="text-2xl mb-1">🔥</div>
+                        <div className="font-bold text-base text-orange-400">VETERAN</div>
+                        <div className="text-xs text-gray-400">Heavy assault</div>
+                      </div>
+                    </motion.button>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(239,68,68,0.3)' }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setDifficulty('insane')}
+                      className={`relative p-3 rounded-xl border-2 transition-all overflow-hidden ${
+                        difficulty === 'insane' 
+                          ? 'border-red-400 bg-gradient-to-br from-red-900/40 to-red-950/40' 
+                          : 'border-gray-700 bg-gray-900/50 hover:border-red-500/50'
+                      }`}
+                    >
+                      {difficulty === 'insane' && (
+                        <motion.div 
+                          className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-transparent"
+                          animate={{ x: ['-100%', '100%'] }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                        />
+                      )}
+                      <div className="relative">
+                        <div className="text-2xl mb-1">💀</div>
+                        <div className="font-bold text-base text-red-400">COMMANDER</div>
+                        <div className="text-xs text-gray-400">Apocalyptic swarm</div>
+                      </div>
+                    </motion.button>
+                  </div>
+                  
+                  {/* Difficulty Details - Compact */}
+                  <div className="bg-gradient-to-r from-cyan-950/30 to-purple-950/30 rounded-xl p-3 mb-4 border border-cyan-500/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-bold text-cyan-300">THREAT ASSESSMENT</h4>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        difficulty === 'easy' ? 'bg-green-500/20 text-green-400' :
+                        difficulty === 'normal' ? 'bg-blue-500/20 text-blue-400' :
+                        difficulty === 'hard' ? 'bg-orange-500/20 text-orange-400' :
+                        'bg-red-500/20 text-red-400'
+                      }`}>
+                        {difficulty.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-300">
+                      {difficulty === 'easy' && (
+                        <>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-green-400">▸</span>
+                            Alien forces gather resources 50% slower
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-400">▸</span>
+                            Enemy production reduced by 20%
+                          </div>
+                        </>
+                      )}
+                      {difficulty === 'normal' && (
+                        <>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-blue-400">▸</span>
+                            Standard alien invasion force
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-blue-400">▸</span>
+                            Balanced resource gathering and production
+                          </div>
+                        </>
+                      )}
+                      {difficulty === 'hard' && (
+                        <>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-orange-400">▸</span>
+                            Alien forces gather 120% resources
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-orange-400">▸</span>
+                            Enemy production increased by 30%
+                          </div>
+                        </>
+                      )}
+                      {difficulty === 'insane' && (
+                        <>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-red-400">▸</span>
+                            Alien swarm gathers 200% resources!
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-red-400">▸</span>
+                            Overwhelming production speed (+50%)
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex flex-col items-center gap-3">
+                    <motion.button
+                      whileHover={{ scale: 1.03, boxShadow: '0 0 30px rgba(6,182,212,0.4)' }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={startGame}
+                      className="relative px-10 py-3 bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 text-white text-lg font-black rounded-xl shadow-xl transition-all overflow-hidden group"
+                    >
+                      <motion.div 
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        animate={{ x: ['-200%', '200%'] }}
+                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                      />
+                      <span className="relative flex items-center gap-2">
+                        <span className="text-xl">🚀</span>
+                        DEPLOY FORCES
+                        <span className="text-xl">⚔️</span>
+                      </span>
+                    </motion.button>
+                    
+                    <button
+                      onClick={onClose}
+                      className="text-gray-500 hover:text-gray-300 transition-colors text-sm"
+                    >
+                      Abort Mission
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          // Game Screen
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="relative bg-gray-900 rounded-2xl w-[95vw] h-[95vh] overflow-hidden border border-cyan-500/30"
+            onClick={(e) => e.stopPropagation()}
+          >
           {/* Header */}
           <div className="absolute top-0 left-0 right-0 bg-black/80 border-b border-cyan-500/30 p-2 flex justify-between items-center z-10">
             <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold text-cyan-400">MARS RTS - StarCraft Style</h2>
-              <div className="text-sm text-gray-400">
-                Time: <span className="text-white font-mono">{formatTime(gameTime)}</span>
+              <h2 className="text-xl font-bold text-cyan-400">LUNAR DEFENSE - Protect Humanity&apos;s Future</h2>
+              <div className={`text-sm px-2 py-1 rounded ${
+                difficulty === 'easy' ? 'bg-green-500/20 text-green-400' :
+                difficulty === 'normal' ? 'bg-blue-500/20 text-blue-400' :
+                difficulty === 'hard' ? 'bg-orange-500/20 text-orange-400' :
+                'bg-red-500/20 text-red-400'
+              }`}>
+                {difficulty.toUpperCase()}
+              </div>
+              <div className="text-sm text-gray-400 flex items-center gap-2">
+                <span>Time: <span className="text-white font-mono">{formatTime(gameTime)}</span></span>
+                {gameTime < 180 && (
+                  <span className="text-xs text-yellow-400 bg-yellow-500/20 px-2 py-0.5 rounded">
+                    Min 3:00 for victory
+                  </span>
+                )}
+                {gameTime >= 180 && (
+                  <span className="text-xs text-green-400 bg-green-500/20 px-2 py-0.5 rounded">
+                    ✓ Victory enabled
+                  </span>
+                )}
               </div>
             </div>
             <div className="flex gap-2">
@@ -478,6 +933,75 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
                 {isPaused ? 'Resume' : 'Pause'}
               </button>
               <button
+                onClick={() => {
+                  // Reset game to start screen
+                  setGameStarted(false);
+                  setGameTime(0);
+                  setGameWinner(null);
+                  setTerranCasualties(0);
+                  setZergCasualties(0);
+                  setIsPaused(false);
+                  setGameSpeed(1);
+                  setBattleLog([]);
+                  setMessages([]);
+                  setTerranQueue([]);
+                  setZergQueue([]);
+                  // Reset resources
+                  setTerranResources({
+                    minerals: 50,
+                    vespeneGas: 0,
+                    supply: 6,
+                    maxSupply: 10
+                  });
+                  setZergResources({
+                    minerals: 50,
+                    vespeneGas: 0,
+                    supply: 6,
+                    maxSupply: 10
+                  });
+                  // Reset units
+                  unitIdCounter.current = 0;
+                  const initialTerranUnits: Unit[] = [];
+                  for (let i = 0; i < 6; i++) {
+                    const stats = UNIT_STATS.scv;
+                    unitIdCounter.current++;
+                    initialTerranUnits.push({
+                      id: `scv-initial-${unitIdCounter.current}-${Math.random().toString(36).substr(2, 9)}`,
+                      type: 'scv',
+                      health: stats.health,
+                      maxHealth: stats.health,
+                      damage: stats.damage,
+                      armor: stats.armor,
+                      speed: stats.speed,
+                      cost: stats.cost,
+                      buildTime: stats.buildTime
+                    });
+                  }
+                  setTerranUnits(initialTerranUnits);
+                  
+                  const initialZergUnits: Unit[] = [];
+                  for (let i = 0; i < 6; i++) {
+                    const stats = UNIT_STATS.drone;
+                    unitIdCounter.current++;
+                    initialZergUnits.push({
+                      id: `drone-initial-${unitIdCounter.current}-${Math.random().toString(36).substr(2, 9)}`,
+                      type: 'drone',
+                      health: stats.health,
+                      maxHealth: stats.health,
+                      damage: stats.damage,
+                      armor: stats.armor,
+                      speed: stats.speed,
+                      cost: stats.cost,
+                      buildTime: stats.buildTime
+                    });
+                  }
+                  setZergUnits(initialZergUnits);
+                }}
+                className="px-3 py-1 bg-yellow-600/20 border border-yellow-500/50 rounded text-yellow-400 hover:bg-yellow-600/30"
+              >
+                🔄 Restart
+              </button>
+              <button
                 onClick={onClose}
                 className="px-3 py-1 bg-red-600/20 border border-red-500/50 rounded text-red-400 hover:bg-red-600/30"
               >
@@ -488,8 +1012,8 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
           
           {/* Main Game Area */}
           <div className="h-full pt-12 pb-32 flex">
-            {/* Left Panel - Terran */}
-            <div className="w-1/3 border-r border-cyan-500/30 p-4">
+            {/* Left Panel - Terran (Reduced Width) */}
+            <div className="w-1/5 border-r border-cyan-500/30 p-2 overflow-y-auto">
               <div className="mb-4">
                 <h3 className="text-lg font-bold text-blue-400 mb-2">TERRAN DOMINION</h3>
                 
@@ -603,8 +1127,8 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
               </div>
             </div>
             
-            {/* Center - Battlefield */}
-            <div className="flex-1 relative bg-gradient-to-b from-red-900/20 to-orange-900/20">
+            {/* Center - Battlefield (Maximized) */}
+            <div className="flex-1 relative bg-gradient-to-b from-gray-700/20 to-gray-900/30">
               <div 
                 className="absolute inset-0 opacity-50" 
                 style={{
@@ -613,7 +1137,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
               />
               
               {/* Battle visualization */}
-              <div className="h-full flex flex-col items-center justify-center p-4 relative">
+              <div className="h-full flex flex-col items-center justify-center p-8 relative">
                 {/* Victory Screen */}
                 {gameWinner && (
                   <motion.div
@@ -636,6 +1160,9 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
                     <div className="text-2xl text-gray-300 mb-4">
                       {gameWinner === 'TERRAN' ? '🚀 Humanity Prevails!' : '🪳 The Swarm Consumes All!'}
                     </div>
+                    <div className="text-lg text-gray-400 mb-4">
+                      Game Time: <span className="text-white font-mono">{formatTime(gameTime)}</span>
+                    </div>
                     <div className="grid grid-cols-2 gap-8 text-center">
                       <div>
                         <p className="text-blue-400 text-sm">Terran Casualties</p>
@@ -647,7 +1174,70 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
                       </div>
                     </div>
                     <button
-                      onClick={() => window.location.reload()}
+                      onClick={() => {
+                        // Reset game to start screen - same as restart button
+                        setGameStarted(false);
+                        setGameTime(0);
+                        setGameWinner(null);
+                        setTerranCasualties(0);
+                        setZergCasualties(0);
+                        setIsPaused(false);
+                        setGameSpeed(1);
+                        setBattleLog([]);
+                        setMessages([]);
+                        setTerranQueue([]);
+                        setZergQueue([]);
+                        // Reset resources
+                        setTerranResources({
+                          minerals: 50,
+                          vespeneGas: 0,
+                          supply: 6,
+                          maxSupply: 10
+                        });
+                        setZergResources({
+                          minerals: 50,
+                          vespeneGas: 0,
+                          supply: 6,
+                          maxSupply: 10
+                        });
+                        // Reset units
+                        unitIdCounter.current = 0;
+                        const initialTerranUnits: Unit[] = [];
+                        for (let i = 0; i < 6; i++) {
+                          const stats = UNIT_STATS.scv;
+                          unitIdCounter.current++;
+                          initialTerranUnits.push({
+                            id: `scv-initial-${unitIdCounter.current}-${Math.random().toString(36).substr(2, 9)}`,
+                            type: 'scv',
+                            health: stats.health,
+                            maxHealth: stats.health,
+                            damage: stats.damage,
+                            armor: stats.armor,
+                            speed: stats.speed,
+                            cost: stats.cost,
+                            buildTime: stats.buildTime
+                          });
+                        }
+                        setTerranUnits(initialTerranUnits);
+                        
+                        const initialZergUnits: Unit[] = [];
+                        for (let i = 0; i < 6; i++) {
+                          const stats = UNIT_STATS.drone;
+                          unitIdCounter.current++;
+                          initialZergUnits.push({
+                            id: `drone-initial-${unitIdCounter.current}-${Math.random().toString(36).substr(2, 9)}`,
+                            type: 'drone',
+                            health: stats.health,
+                            maxHealth: stats.health,
+                            damage: stats.damage,
+                            armor: stats.armor,
+                            speed: stats.speed,
+                            cost: stats.cost,
+                            buildTime: stats.buildTime
+                          });
+                        }
+                        setZergUnits(initialZergUnits);
+                      }}
                       className="mt-8 px-6 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white font-bold rounded-lg hover:from-cyan-700 hover:to-purple-700"
                     >
                       Play Again
@@ -655,175 +1245,335 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
                   </motion.div>
                 )}
                 
-                <h3 className="text-2xl font-bold text-orange-400 mb-4">MARS BATTLEFIELD</h3>
+                {/* Battlefield Title with Effects */}
+                <motion.div 
+                  className="relative mb-6"
+                  initial={{ y: -50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                >
+                  <h3 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white to-purple-400">
+                    LUNAR BATTLEFIELD
+                  </h3>
+                  <motion.div 
+                    className="absolute -inset-2 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 blur-xl"
+                    animate={{ opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                </motion.div>
                 
-                {/* Army Units Display */}
-                <div className="flex justify-between w-full mb-4">
-                  {/* Terran Army */}
-                  <div className="w-1/2 pr-4">
-                    <p className="text-blue-400 font-bold text-center mb-2">TERRAN FORCES</p>
-                    <div className="flex flex-wrap justify-center gap-1">
-                      {terranUnits.slice(0, 20).map((unit, i) => (
-                        <motion.div
-                          key={unit.id}
-                          initial={{ scale: 0 }}
-                          animate={{ 
-                            scale: unit.health < unit.maxHealth * 0.3 ? [1, 1.1, 1] : 1,
-                          }}
-                          exit={{ scale: 0, opacity: 0 }}
-                          transition={{
-                            scale: { duration: 0.5, repeat: unit.health < unit.maxHealth * 0.3 ? Infinity : 0 }
-                          }}
-                          className="relative group"
-                        >
-                          <motion.span 
-                            className="text-2xl block"
-                            animate={unit.health < unit.maxHealth ? { 
-                              filter: ['brightness(1)', 'brightness(1.5)', 'brightness(1)'] 
-                            } : {}}
-                            transition={{ duration: 0.2 }}
-                          >
-                            {unit.type === 'scv' && '👷'}
-                            {unit.type === 'marine' && '🔫'}
-                            {unit.type === 'marauder' && '💪'}
-                            {unit.type === 'tank' && '🚗'}
-                            {unit.type === 'battlecruiser' && '🚁'}
-                          </motion.span>
-                          {/* Health bar */}
-                          <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gray-700 rounded-full overflow-hidden">
-                            <motion.div 
-                              className={`h-full rounded-full ${
-                                unit.health > unit.maxHealth * 0.6 ? 'bg-green-500' :
-                                unit.health > unit.maxHealth * 0.3 ? 'bg-yellow-500' :
-                                'bg-red-500'
-                              }`}
-                              initial={{ width: '100%' }}
-                              animate={{ width: `${(unit.health / unit.maxHealth) * 100}%` }}
-                              transition={{ duration: 0.3 }}
-                            />
-                          </div>
-                          {/* Damage indicator */}
-                          {unit.health < unit.maxHealth && (
+                {/* Main Battle Display Area */}
+                <div className="relative w-full">
+                  {/* Background Effects */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent rounded-2xl" />
+                  
+                  {/* Army Display Grid */}
+                  <div className="relative grid grid-cols-11 gap-6 p-8 bg-black/40 backdrop-blur-sm rounded-2xl border border-cyan-500/20">
+                    {/* Terran Army Section */}
+                    <div className="col-span-5">
+                      <div className="relative">
+                        {/* Faction Header */}
+                        <div className="bg-gradient-to-r from-blue-600/30 to-cyan-600/30 rounded-t-lg p-4 border border-blue-500/30">
+                          <h4 className="text-2xl font-bold text-blue-300 text-center flex items-center justify-center gap-3">
+                            <span className="text-3xl">🛡️</span>
+                            TERRAN DOMINION
+                            <span className="text-3xl">⚔️</span>
+                          </h4>
+                        </div>
+                        
+                        {/* Units Display */}
+                        <div className="bg-gradient-to-b from-blue-950/40 to-black/60 rounded-b-lg p-4 border-x border-b border-blue-500/20 space-y-3">
+                          {Object.entries(
+                            terranUnits.reduce((acc, unit) => {
+                              if (!acc[unit.type]) {
+                                acc[unit.type] = { count: 0, icon: '', health: 0, maxHealth: 0 };
+                              }
+                              acc[unit.type].count++;
+                              acc[unit.type].health += unit.health;
+                              acc[unit.type].maxHealth += unit.maxHealth;
+                              acc[unit.type].icon = 
+                                unit.type === 'scv' ? '👷' :
+                                unit.type === 'marine' ? '🔫' :
+                                unit.type === 'marauder' ? '💪' :
+                                unit.type === 'tank' ? '🚗' :
+                                unit.type === 'battlecruiser' ? '🚁' : '?';
+                              return acc;
+                            }, {} as Record<string, { count: number; icon: string; health: number; maxHealth: number }>)
+                          ).map(([type, data]) => (
                             <motion.div
-                              initial={{ opacity: 1, y: -10 }}
-                              animate={{ opacity: 0, y: -20 }}
-                              transition={{ duration: 1 }}
-                              className="absolute -top-2 left-1/2 transform -translate-x-1/2 text-red-500 text-xs font-bold pointer-events-none"
+                              key={type}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              whileHover={{ scale: 1.02 }}
+                              className="relative group"
                             >
-                              -{Math.floor(unit.maxHealth - unit.health)}
+                              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg blur group-hover:blur-md transition-all" />
+                              <div className="relative bg-black/50 backdrop-blur-sm rounded-lg p-3 border border-blue-500/30 group-hover:border-blue-400/50 transition-all">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-4">
+                                    <motion.span 
+                                      className="text-5xl"
+                                      animate={{ rotate: [0, -5, 5, 0] }}
+                                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                                    >
+                                      {data.icon}
+                                    </motion.span>
+                                    <div>
+                                      <div className="flex items-baseline gap-2">
+                                        <span className="text-blue-200 font-bold text-xl capitalize">{type}</span>
+                                        <span className="text-cyan-400 font-black text-2xl">×{data.count}</span>
+                                      </div>
+                                      <div className="text-sm text-gray-400">
+                                        HP: {Math.floor(data.health)}/{data.maxHealth}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Health Bar */}
+                                  <div className="w-32">
+                                    <div className="h-3 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
+                                      <motion.div 
+                                        className="h-full relative overflow-hidden"
+                                        style={{
+                                          background: data.health / data.maxHealth > 0.6 
+                                            ? 'linear-gradient(90deg, #10b981, #34d399)' 
+                                            : data.health / data.maxHealth > 0.3 
+                                            ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
+                                            : 'linear-gradient(90deg, #dc2626, #ef4444)'
+                                        }}
+                                        initial={{ width: '100%' }}
+                                        animate={{ width: `${(data.health / data.maxHealth) * 100}%` }}
+                                        transition={{ duration: 0.5 }}
+                                      >
+                                        <motion.div 
+                                          className="absolute inset-0 bg-white/30"
+                                          animate={{ x: ['0%', '100%'] }}
+                                          transition={{ duration: 1, repeat: Infinity }}
+                                        />
+                                      </motion.div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </motion.div>
+                          ))}
+                          {terranUnits.length === 0 && (
+                            <div className="text-gray-500 text-center py-8">
+                              <span className="text-4xl">🚫</span>
+                              <p className="mt-2">No units deployed</p>
+                            </div>
                           )}
-                        </motion.div>
-                      ))}
-                      {terranUnits.length > 20 && (
-                        <span className="text-gray-400 text-sm">+{terranUnits.length - 20} more</span>
-                      )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
                   
-                  {/* VS */}
-                  <div className="flex items-center">
-                    <motion.div 
-                      className="text-4xl text-yellow-400"
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 1, repeat: Infinity }}
-                    >
-                      ⚔️
-                    </motion.div>
-                  </div>
-                  
-                  {/* Zerg Army */}
-                  <div className="w-1/2 pl-4">
-                    <p className="text-purple-400 font-bold text-center mb-2">ZERG SWARM</p>
-                    <div className="flex flex-wrap justify-center gap-1">
-                      {zergUnits.slice(0, 20).map((unit, i) => (
-                        <motion.div
-                          key={unit.id}
-                          initial={{ scale: 0 }}
-                          animate={{ 
-                            scale: unit.health < unit.maxHealth * 0.3 ? [1, 1.1, 1] : 1,
-                          }}
-                          exit={{ scale: 0, opacity: 0 }}
-                          transition={{
-                            scale: { duration: 0.5, repeat: unit.health < unit.maxHealth * 0.3 ? Infinity : 0 }
-                          }}
-                          className="relative group"
+                    {/* VS Center */}
+                    <div className="col-span-1 flex items-center justify-center">
+                      <motion.div 
+                        className="relative"
+                        animate={{ scale: [1, 1.1, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/50 to-orange-500/50 blur-2xl" />
+                        <div className="relative bg-black/60 rounded-full p-4 border-2 border-yellow-500/50">
+                          <span className="text-5xl">⚔️</span>
+                        </div>
+                        <motion.div 
+                          className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-yellow-400 font-bold text-sm"
+                          animate={{ opacity: [1, 0.5, 1] }}
+                          transition={{ duration: 1, repeat: Infinity }}
                         >
-                          <motion.span 
-                            className="text-2xl block"
-                            animate={unit.health < unit.maxHealth ? { 
-                              filter: ['brightness(1)', 'brightness(1.5)', 'brightness(1)'] 
-                            } : {}}
-                            transition={{ duration: 0.2 }}
-                          >
-                            {unit.type === 'drone' && '🐛'}
-                            {unit.type === 'zergling' && '🦗'}
-                            {unit.type === 'roach' && '🪳'}
-                            {unit.type === 'hydralisk' && '🦂'}
-                            {unit.type === 'ultralisk' && '🦏'}
-                          </motion.span>
-                          {/* Health bar */}
-                          <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gray-700 rounded-full overflow-hidden">
-                            <motion.div 
-                              className={`h-full rounded-full ${
-                                unit.health > unit.maxHealth * 0.6 ? 'bg-green-500' :
-                                unit.health > unit.maxHealth * 0.3 ? 'bg-yellow-500' :
-                                'bg-red-500'
-                              }`}
-                              initial={{ width: '100%' }}
-                              animate={{ width: `${(unit.health / unit.maxHealth) * 100}%` }}
-                              transition={{ duration: 0.3 }}
-                            />
-                          </div>
-                          {/* Damage indicator */}
-                          {unit.health < unit.maxHealth && (
-                            <motion.div
-                              initial={{ opacity: 1, y: -10 }}
-                              animate={{ opacity: 0, y: -20 }}
-                              transition={{ duration: 1 }}
-                              className="absolute -top-2 left-1/2 transform -translate-x-1/2 text-purple-500 text-xs font-bold pointer-events-none"
-                            >
-                              -{Math.floor(unit.maxHealth - unit.health)}
-                            </motion.div>
-                          )}
+                          BATTLE
                         </motion.div>
-                      ))}
-                      {zergUnits.length > 20 && (
-                        <span className="text-gray-400 text-sm">+{zergUnits.length - 20} more</span>
-                      )}
+                      </motion.div>
+                    </div>
+                  
+                    {/* Zerg Army Section */}
+                    <div className="col-span-5">
+                      <div className="relative">
+                        {/* Faction Header */}
+                        <div className="bg-gradient-to-r from-purple-600/30 to-pink-600/30 rounded-t-lg p-4 border border-purple-500/30">
+                          <h4 className="text-2xl font-bold text-purple-300 text-center flex items-center justify-center gap-3">
+                            <span className="text-3xl">🦴</span>
+                            ZERG SWARM
+                            <span className="text-3xl">👾</span>
+                          </h4>
+                        </div>
+                        
+                        {/* Units Display */}
+                        <div className="bg-gradient-to-b from-purple-950/40 to-black/60 rounded-b-lg p-4 border-x border-b border-purple-500/20 space-y-3">
+                          {Object.entries(
+                            zergUnits.reduce((acc, unit) => {
+                              if (!acc[unit.type]) {
+                                acc[unit.type] = { count: 0, icon: '', health: 0, maxHealth: 0 };
+                              }
+                              acc[unit.type].count++;
+                              acc[unit.type].health += unit.health;
+                              acc[unit.type].maxHealth += unit.maxHealth;
+                              acc[unit.type].icon = 
+                                unit.type === 'drone' ? '🐛' :
+                                unit.type === 'zergling' ? '🦗' :
+                                unit.type === 'roach' ? '🪳' :
+                                unit.type === 'hydralisk' ? '🦂' :
+                                unit.type === 'ultralisk' ? '🦏' : '?';
+                              return acc;
+                            }, {} as Record<string, { count: number; icon: string; health: number; maxHealth: number }>)
+                          ).map(([type, data]) => (
+                            <motion.div
+                              key={type}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              whileHover={{ scale: 1.02 }}
+                              className="relative group"
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg blur group-hover:blur-md transition-all" />
+                              <div className="relative bg-black/50 backdrop-blur-sm rounded-lg p-3 border border-purple-500/30 group-hover:border-purple-400/50 transition-all">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-4">
+                                    <motion.span 
+                                      className="text-5xl"
+                                      animate={{ rotate: [0, 5, -5, 0] }}
+                                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                                    >
+                                      {data.icon}
+                                    </motion.span>
+                                    <div>
+                                      <div className="flex items-baseline gap-2">
+                                        <span className="text-purple-200 font-bold text-xl capitalize">{type}</span>
+                                        <span className="text-pink-400 font-black text-2xl">×{data.count}</span>
+                                      </div>
+                                      <div className="text-sm text-gray-400">
+                                        HP: {Math.floor(data.health)}/{data.maxHealth}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Health Bar */}
+                                  <div className="w-32">
+                                    <div className="h-3 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
+                                      <motion.div 
+                                        className="h-full relative overflow-hidden"
+                                        style={{
+                                          background: data.health / data.maxHealth > 0.6 
+                                            ? 'linear-gradient(90deg, #10b981, #34d399)' 
+                                            : data.health / data.maxHealth > 0.3 
+                                            ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
+                                            : 'linear-gradient(90deg, #dc2626, #ef4444)'
+                                        }}
+                                        initial={{ width: '100%' }}
+                                        animate={{ width: `${(data.health / data.maxHealth) * 100}%` }}
+                                        transition={{ duration: 0.5 }}
+                                      >
+                                        <motion.div 
+                                          className="absolute inset-0 bg-white/30"
+                                          animate={{ x: ['0%', '100%'] }}
+                                          transition={{ duration: 1, repeat: Infinity }}
+                                        />
+                                      </motion.div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          ))}
+                          {zergUnits.length === 0 && (
+                            <div className="text-gray-500 text-center py-8">
+                              <span className="text-4xl">🚫</span>
+                              <p className="mt-2">No units spawned</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Battle Stats */}
-                <div className="grid grid-cols-3 gap-4 w-full max-w-md">
-                  <div className="bg-blue-900/30 rounded-lg p-2 text-center">
-                    <p className="text-xs text-blue-400">Terran Army</p>
-                    <p className="text-xl font-bold text-white">{terranUnits.filter(u => u.type !== 'scv').length}</p>
-                    <p className="text-xs text-red-400">Casualties: {terranCasualties}</p>
+                {/* Battle Statistics Dashboard */}
+                <motion.div 
+                  className="mt-6 grid grid-cols-3 gap-6 w-full max-w-3xl"
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  {/* Terran Stats */}
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all" />
+                    <div className="relative bg-gradient-to-br from-blue-950/80 to-black/80 backdrop-blur-sm rounded-xl p-4 border border-blue-500/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="text-blue-300 font-bold">TERRAN</h5>
+                        <span className="text-2xl">🛡️</span>
+                      </div>
+                      <div className="text-3xl font-black text-white mb-1">
+                        {terranUnits.filter(u => u.type !== 'scv').length}
+                      </div>
+                      <div className="text-xs text-gray-400">Combat Units</div>
+                      <div className="mt-2 pt-2 border-t border-blue-500/20">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-red-400">Casualties</span>
+                          <span className="text-red-300 font-bold">{terranCasualties}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   
-                  <div className="bg-black/50 rounded-lg p-2 text-center">
-                    <p className="text-xs text-gray-400">Battle Status</p>
-                    <p className="text-sm font-bold text-yellow-400">
-                      {terranUnits.filter(u => u.type !== 'scv').length === 0 && zergUnits.filter(u => u.type !== 'drone').length === 0 && 'Preparing...'}
-                      {terranUnits.filter(u => u.type !== 'scv').length > zergUnits.filter(u => u.type !== 'drone').length * 1.5 && '🔵 Terran Lead!'}
-                      {zergUnits.filter(u => u.type !== 'drone').length > terranUnits.filter(u => u.type !== 'scv').length * 1.5 && '🟣 Zerg Swarm!'}
-                      {terranUnits.filter(u => u.type !== 'scv').length > 0 && zergUnits.filter(u => u.type !== 'drone').length > 0 && Math.abs(terranUnits.filter(u => u.type !== 'scv').length - zergUnits.filter(u => u.type !== 'drone').length) < 3 && '⚔️ Fierce Battle!'}
-                    </p>
+                  {/* Battle Status */}
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all" />
+                    <div className="relative bg-gradient-to-br from-gray-950/80 to-black/80 backdrop-blur-sm rounded-xl p-4 border border-yellow-500/30">
+                      <div className="flex items-center justify-center mb-2">
+                        <h5 className="text-yellow-300 font-bold">BATTLE STATUS</h5>
+                      </div>
+                      <div className="text-center">
+                        <motion.div 
+                          className="text-2xl font-black"
+                          animate={{ scale: [1, 1.05, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          {terranUnits.filter(u => u.type !== 'scv').length === 0 && zergUnits.filter(u => u.type !== 'drone').length === 0 && (
+                            <span className="text-gray-400">PREPARING</span>
+                          )}
+                          {terranUnits.filter(u => u.type !== 'scv').length > zergUnits.filter(u => u.type !== 'drone').length * 1.5 && (
+                            <span className="text-blue-400">TERRAN LEAD!</span>
+                          )}
+                          {zergUnits.filter(u => u.type !== 'drone').length > terranUnits.filter(u => u.type !== 'scv').length * 1.5 && (
+                            <span className="text-purple-400">ZERG SWARM!</span>
+                          )}
+                          {terranUnits.filter(u => u.type !== 'scv').length > 0 && zergUnits.filter(u => u.type !== 'drone').length > 0 && Math.abs(terranUnits.filter(u => u.type !== 'scv').length - zergUnits.filter(u => u.type !== 'drone').length) < 3 && (
+                            <span className="text-orange-400">FIERCE BATTLE!</span>
+                          )}
+                        </motion.div>
+                      </div>
+                      <div className="mt-2 text-xs text-center text-gray-400">
+                        Total Casualties: {terranCasualties + zergCasualties}
+                      </div>
+                    </div>
                   </div>
                   
-                  <div className="bg-purple-900/30 rounded-lg p-2 text-center">
-                    <p className="text-xs text-purple-400">Zerg Army</p>
-                    <p className="text-xl font-bold text-white">{zergUnits.filter(u => u.type !== 'drone').length}</p>
-                    <p className="text-xs text-red-400">Casualties: {zergCasualties}</p>
+                  {/* Zerg Stats */}
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all" />
+                    <div className="relative bg-gradient-to-br from-purple-950/80 to-black/80 backdrop-blur-sm rounded-xl p-4 border border-purple-500/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="text-purple-300 font-bold">ZERG</h5>
+                        <span className="text-2xl">👾</span>
+                      </div>
+                      <div className="text-3xl font-black text-white mb-1">
+                        {zergUnits.filter(u => u.type !== 'drone').length}
+                      </div>
+                      <div className="text-xs text-gray-400">Combat Units</div>
+                      <div className="mt-2 pt-2 border-t border-purple-500/20">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-red-400">Casualties</span>
+                          <span className="text-red-300 font-bold">{zergCasualties}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
             
-            {/* Right Panel - Zerg */}
-            <div className="w-1/3 border-l border-purple-500/30 p-4">
+            {/* Right Panel - Zerg (Reduced Width) */}
+            <div className="w-1/5 border-l border-purple-500/30 p-2 overflow-y-auto">
               <div className="mb-4">
                 <h3 className="text-lg font-bold text-purple-400 mb-2">ZERG SWARM</h3>
                 
@@ -954,6 +1704,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
             </div>
           </div>
         </motion.div>
+        )}
       </motion.div>
     </AnimatePresence>
   );

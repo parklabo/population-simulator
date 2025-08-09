@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart } from 'recharts';
 import CountUp from 'react-countup';
-import MarsRTSGame from './MarsRTSGame';
 
 interface MarsColonyModalProps {
   isOpen: boolean;
@@ -30,7 +29,6 @@ export default function MarsColonyModal({ isOpen, onClose }: MarsColonyModalProp
   const [terraformingLevel, setTerraformingLevel] = useState(0);
   const [battleIntensity, setBattleIntensity] = useState(0);
   const [prevYearRoaches, setPrevYearRoaches] = useState(0);
-  const [showRTSGame, setShowRTSGame] = useState(false);
   
   // Equipment state
   const [equipment, setEquipment] = useState<Equipment>({
@@ -571,18 +569,6 @@ export default function MarsColonyModal({ isOpen, onClose }: MarsColonyModalProp
                     <span className="flex items-center justify-center gap-2">
                       <span>{isPlaying ? '⏸' : '▶'}</span>
                       {isPlaying ? 'Pause' : 'Start War'}
-                    </span>
-                  </motion.button>
-                  
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowRTSGame(true)}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-cyan-500/25 transition-all"
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      <span>🎮</span>
-                      Play RTS Game
                     </span>
                   </motion.button>
                   
@@ -1513,12 +1499,6 @@ export default function MarsColonyModal({ isOpen, onClose }: MarsColonyModalProp
         </motion.div>
       </motion.div>
       )}
-      
-      {/* StarCraft-style RTS Game Modal */}
-      <MarsRTSGame 
-        isOpen={showRTSGame}
-        onClose={() => setShowRTSGame(false)}
-      />
     </AnimatePresence>
   );
 }

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { worldCountries, celestialBodies, getCountryColor, getCrisisLevel, CountryData } from '@/lib/world-data';
 import SimulatorModal from '@/components/SimulatorModal';
 import MarsColonyModal from '@/components/MarsColonyModal';
+import MarsRTSGame from '@/components/MarsRTSGame';
 
 // Dynamic imports for client-side only components
 const Globe = dynamic(() => import('react-globe.gl'), { 
@@ -26,6 +27,7 @@ export default function Home() {
   const [hoveredCountry, setHoveredCountry] = useState<CountryData | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMarsModalOpen, setIsMarsModalOpen] = useState(false);
+  const [isMoonRTSOpen, setIsMoonRTSOpen] = useState(false);
   const [countries, setCountries] = useState<{ features: any[] }>({ features: [] }); // eslint-disable-line @typescript-eslint/no-explicit-any
   // const [starData, setStarData] = useState<any[]>([]); // Currently unused
   
@@ -84,10 +86,7 @@ export default function Home() {
   };
   
   const handleMoonClick = () => {
-    const moon = celestialBodies.find(body => body.id === 'moon');
-    if (moon) {
-      setSelectedCountry(moon);
-    }
+    setIsMoonRTSOpen(true);
   };
   
   return (
@@ -368,6 +367,12 @@ export default function Home() {
       <MarsColonyModal 
         isOpen={isMarsModalOpen}
         onClose={() => setIsMarsModalOpen(false)}
+      />
+      
+      {/* Moon RTS Game - StarCraft Style */}
+      <MarsRTSGame 
+        isOpen={isMoonRTSOpen}
+        onClose={() => setIsMoonRTSOpen(false)}
       />
     </div>
   );
