@@ -186,7 +186,7 @@ export default function Home() {
           {/* Country Rankings Section */}
           <div className="px-4 pb-3">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-white font-semibold text-sm">Top Crisis Countries</h4>
+              <h4 className="text-white font-semibold text-sm">Birth Rate Rankings</h4>
               <span className="text-[10px] text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">
                 {worldCountries.length} countries
               </span>
@@ -195,7 +195,6 @@ export default function Home() {
             <div className="space-y-0.5 max-h-64 overflow-y-auto custom-scrollbar">
               {worldCountries
                 .sort((a, b) => a.birthRate - b.birthRate)
-                .slice(0, 15)
                 .map((country, index) => (
                   <motion.button
                     key={country.id}
@@ -242,25 +241,17 @@ export default function Home() {
                 ))}
             </div>
             
-            {/* Show More Button */}
-            <button className="w-full mt-2 py-2 text-[10px] text-gray-400 hover:text-white transition-colors flex items-center justify-center gap-1">
-              <span>View all {worldCountries.length} countries</span>
-              <span>→</span>
-            </button>
           </div>
           
           {/* Footer with Data Source */}
           <div className="bg-gradient-to-r from-cyan-600/10 to-purple-600/10 border-t border-white/10 p-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-center">
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full animate-pulse"></div>
                 <p className="text-[9px] text-gray-400 font-mono tracking-wider">
-                  UN DATA 2024
+                  UN POPULATION DATA 2024
                 </p>
               </div>
-              <p className="text-[9px] text-gray-500">
-                LIVE UPDATE
-              </p>
             </div>
           </div>
         </motion.div>
