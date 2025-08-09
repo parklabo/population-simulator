@@ -19,11 +19,11 @@ const Globe = dynamic(() => import('react-globe.gl'), {
 const StarField = dynamic(() => import('@/components/StarField'), { ssr: false });
 
 export default function Home() {
-  const globeEl = useRef<any>();
+  const globeEl = useRef<any>(null);
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null);
   const [hoveredCountry, setHoveredCountry] = useState<CountryData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [countries, setCountries] = useState<any[]>([]);
+  const [countries, setCountries] = useState<any>({ features: [] });
   
   // Load world topology
   useEffect(() => {
@@ -134,14 +134,14 @@ export default function Home() {
           </div>
         </motion.div>
         
-        {/* Legend */}
+        {/* Legend and Country Rankings */}
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
-          className="absolute top-32 left-8 bg-black/60 backdrop-blur-lg rounded-xl p-4 border border-white/10 pointer-events-auto"
+          className="absolute top-32 left-8 bg-black/60 backdrop-blur-lg rounded-xl p-4 border border-white/10 pointer-events-auto max-w-xs"
         >
           <h3 className="text-white font-semibold mb-3">Birth Rate Crisis Levels</h3>
-          <div className="space-y-2">
+          <div className="space-y-2 mb-4">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-red-500 rounded-full"></div>
               <span className="text-gray-300 text-sm">&lt; 1.0 - Extreme</span>
@@ -160,23 +160,44 @@ export default function Home() {
             </div>
           </div>
           
-          {/* Focus on Korea Button */}
-          <button
-            onClick={() => {
-              const korea = worldCountries.find(c => c.id === 'KR');
-              if (korea && globeEl.current) {
-                setSelectedCountry(korea);
-                globeEl.current.pointOfView({
-                  lat: korea.lat,
-                  lng: korea.lng,
-                  altitude: 1.5
-                }, 1000);
-              }
-            }}
-            className="mt-4 w-full px-3 py-2 bg-red-600/80 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-semibold"
-          >
-            🇰🇷 Focus on Korea (0.72)
-          </button>
+          {/* Country Rankings */}
+          <div className="border-t border-white/10 pt-4">
+            <h4 className="text-white font-semibold mb-3">Lowest Birth Rates</h4>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {worldCountries
+                .sort((a, b) => a.birthRate - b.birthRate)
+                .slice(0, 10)
+                .map((country, index) => (
+                  <button
+                    key={country.id}
+                    onClick={() => {
+                      if (globeEl.current) {
+                        setSelectedCountry(country);
+                        globeEl.current.pointOfView({
+                          lat: country.lat,
+                          lng: country.lng,
+                          altitude: 1.5
+                        }, 1000);
+                      }
+                    }}
+                    className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white/10 transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400 text-xs w-5">{index + 1}.</span>
+                      <span className="text-lg">{country.flag}</span>
+                      <span className="text-white text-sm">{country.name}</span>
+                    </div>
+                    <span className={`text-sm font-bold ${
+                      country.birthRate < 1.0 ? 'text-red-400' : 
+                      country.birthRate < 1.5 ? 'text-orange-400' : 
+                      'text-yellow-400'
+                    }`}>
+                      {country.birthRate}
+                    </span>
+                  </button>
+                ))}
+            </div>
+          </div>
         </motion.div>
         
         {/* Country Info Panel */}
