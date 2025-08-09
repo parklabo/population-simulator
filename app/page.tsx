@@ -126,9 +126,9 @@ export default function Home() {
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                Global Population Crisis Map
+                Global Population Map
               </h1>
-              <p className="text-gray-400 mt-2">Select a country to explore demographic futures</p>
+              <p className="text-gray-400 mt-2">Select a country to explore demographic futures • 200-Year Projection</p>
             </div>
             
           </div>

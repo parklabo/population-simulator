@@ -43,7 +43,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
   }, [country]);
   
   const simulator = useMemo(() => new PopulationSimulator(), []);
-  const projection = useMemo(() => simulator.simulate(params, 100), [params, simulator]); // 100 years to 2125
+  const projection = useMemo(() => simulator.simulate(params, 200), [params, simulator]); // 200 years to 2225
   
   // Time-lapse animation
   useEffect(() => {
@@ -51,9 +51,9 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
     
     const interval = setInterval(() => {
       setCurrentYear(prev => {
-        if (prev >= 2125) {
+        if (prev >= 2225) {
           setIsPlaying(false);
-          return 2125;
+          return 2225;
         }
         return prev + 1;
       });
@@ -105,9 +105,9 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
     return null;
   }, [projection.data]);
   
-  const populationIn2125 = projection.data[projection.data.length - 1]?.totalPopulation || 0;
-  const populationChange = ((populationIn2125 - country.population) / country.population * 100).toFixed(1);
-  const simulationComplete = currentYear >= 2125; // Check if simulation reached end
+  const populationIn2225 = projection.data[projection.data.length - 1]?.totalPopulation || 0;
+  const populationChange = ((populationIn2225 - country.population) / country.population * 100).toFixed(1);
+  const simulationComplete = currentYear >= 2225; // Check if simulation reached end
   
   if (!isOpen) return null;
   
@@ -137,7 +137,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
               <span className="text-3xl">{country.flag}</span>
               <div>
                 <h2 className="text-2xl font-bold text-white">{country.name}</h2>
-                <p className="text-xs text-gray-400">Population Simulator • 2025-2125</p>
+                <p className="text-xs text-gray-400">Population Simulator • 2025-2225</p>
               </div>
             </div>
             <button
@@ -168,7 +168,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                   <div className="mt-2 h-1 bg-gray-700 rounded-full">
                     <div 
                       className="h-full bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full transition-all duration-300"
-                      style={{ width: `${(currentYear - 2025) / 100 * 100}%` }}
+                      style={{ width: `${(currentYear - 2025) / 200 * 100}%` }}
                     />
                   </div>
                 </div>
@@ -217,13 +217,13 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                         <div className="w-full h-2 bg-gray-700 rounded-full"></div>
                         <div 
                           className="absolute h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-300"
-                          style={{ width: `${(currentYear - 2025) / 100 * 100}%` }}
+                          style={{ width: `${(currentYear - 2025) / 200 * 100}%` }}
                         ></div>
                       </div>
                       <input
                         type="range"
                         min="2025"
-                        max="2125"
+                        max="2225"
                         step="1"
                         value={currentYear}
                         onChange={(e) => {
@@ -235,8 +235,8 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                     </div>
                     <div className="flex justify-between text-[10px] text-gray-600 mt-2">
                       <span>2025</span>
-                      <span>2075</span>
                       <span>2125</span>
+                      <span>2225</span>
                     </div>
                   </motion.div>
                 )}
@@ -477,9 +477,9 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                   
                   <div className="space-y-3">
                     <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/30 rounded-xl p-3 border border-purple-500/20">
-                      <p className="text-[10px] text-purple-400 uppercase tracking-wider mb-1">2125 Population</p>
+                      <p className="text-[10px] text-purple-400 uppercase tracking-wider mb-1">2225 Population</p>
                       <p className="text-2xl font-bold text-white">
-                        {populationIn2125.toFixed(1)}M
+                        {populationIn2225.toFixed(1)}M
                       </p>
                       <p className={`text-xs mt-1 ${Number(populationChange) < 0 ? 'text-red-400' : 'text-green-400'}`}>
                         {Number(populationChange) > 0 ? '↑' : '↓'} {Math.abs(Number(populationChange))}%
@@ -634,7 +634,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
           {/* Data Source */}
           <div className="mt-6 pt-4 border-t border-gray-700">
             <p className="text-xs text-gray-500 text-center">
-              Data Source: UN Population Division, World Population Prospects 2024
+              Data Source: UN Population Division, World Population Prospects 2024 | 200-Year Projection
               {country.ageStructure && " | Age structure data available"}
             </p>
           </div>
