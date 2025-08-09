@@ -262,8 +262,8 @@ export default function Home() {
                   onClick={handleSimulateClick}
                   className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2"
                 >
-                  <span>🚀</span>
-                  Launch Population Simulator
+                  <span>📊</span>
+                  Run Simulation
                 </motion.button>
               </div>
             </motion.div>
