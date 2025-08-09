@@ -579,7 +579,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95"
+        className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/95"
         onClick={onClose}
       >
         {!gameStarted ? (
@@ -588,7 +588,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
-            className="relative bg-gradient-to-b from-gray-900 via-blue-950/20 to-gray-900 rounded-3xl max-w-3xl border border-cyan-500/20 shadow-2xl overflow-hidden"
+            className="relative bg-gradient-to-b from-gray-900 via-blue-950/20 to-gray-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-3xl max-h-[90vh] sm:max-h-none border border-cyan-500/20 shadow-2xl overflow-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Animated background pattern */}
@@ -616,7 +616,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
               transition={{ duration: 5, repeat: Infinity }}
             />
             
-            <div className="relative p-8">
+            <div className="relative p-4 sm:p-8">
               {/* Title Section - Compact */}
               <div className="text-center mb-6">
                 <motion.div
@@ -633,7 +633,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
                     🌙
                   </motion.div>
                   <div>
-                    <h1 className="text-5xl font-black mb-1 flex items-center justify-center gap-3">
+                    <h1 className="text-3xl sm:text-5xl font-black mb-1 flex items-center justify-center gap-2 sm:gap-3">
                       <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-500 bg-clip-text text-transparent">
                         LUNAR DEFENSE
                       </span>
@@ -641,7 +641,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
                         BETA
                       </span>
                     </h1>
-                    <div className="text-lg text-cyan-400 font-semibold">
+                    <div className="text-base sm:text-lg text-cyan-400 font-semibold">
                       OPERATION: LAST STAND
                     </div>
                   </div>
@@ -894,14 +894,15 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="relative bg-gray-900 rounded-2xl w-[95vw] h-[95vh] overflow-hidden border border-cyan-500/30"
+            className="relative bg-gray-900 sm:rounded-2xl w-full sm:w-[95vw] h-[100vh] sm:h-[95vh] overflow-hidden border-0 sm:border border-cyan-500/30"
             onClick={(e) => e.stopPropagation()}
           >
           {/* Header */}
-          <div className="absolute top-0 left-0 right-0 bg-black/80 border-b border-cyan-500/30 p-2 flex justify-between items-center z-10">
-            <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold text-cyan-400 flex items-center gap-2">
-                LUNAR DEFENSE - Protect Humanity&apos;s Future
+          <div className="absolute top-0 left-0 right-0 bg-black/90 border-b border-cyan-500/30 p-2 sm:p-3 z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-2 sm:gap-4">
+              <h2 className="text-sm sm:text-xl font-bold text-cyan-400 flex items-center gap-2">
+                <span className="hidden sm:inline">LUNAR DEFENSE - Protect Humanity&apos;s Future</span>
+                <span className="sm:hidden">LUNAR DEFENSE</span>
                 <span className="px-2 py-0.5 bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 text-xs font-bold rounded">
                   BETA
                 </span>
@@ -928,16 +929,16 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
                 )}
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-1 sm:gap-2">
               <button
                 onClick={() => setGameSpeed(gameSpeed === 1 ? 2 : gameSpeed === 2 ? 4 : 1)}
-                className="px-3 py-1 bg-cyan-600/20 border border-cyan-500/50 rounded text-cyan-400 hover:bg-cyan-600/30"
+                className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-cyan-600/20 border border-cyan-500/50 rounded text-cyan-400 hover:bg-cyan-600/30"
               >
                 Speed: {gameSpeed}x
               </button>
               <button
                 onClick={() => setIsPaused(!isPaused)}
-                className="px-3 py-1 bg-cyan-600/20 border border-cyan-500/50 rounded text-cyan-400 hover:bg-cyan-600/30"
+                className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-cyan-600/20 border border-cyan-500/50 rounded text-cyan-400 hover:bg-cyan-600/30"
               >
                 {isPaused ? 'Resume' : 'Pause'}
               </button>
@@ -1020,23 +1021,23 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
           </div>
           
           {/* Main Game Area */}
-          <div className="h-full pt-12 pb-32 flex">
+          <div className="h-full pt-16 sm:pt-12 pb-32 flex flex-col sm:flex-row">
             {/* Left Panel - Terran (Reduced Width) */}
-            <div className="w-1/5 border-r border-cyan-500/30 p-2 overflow-y-auto">
+            <div className="w-full sm:w-1/5 border-b sm:border-b-0 sm:border-r border-cyan-500/30 p-2 overflow-y-auto">
               <div className="mb-4">
-                <h3 className="text-lg font-bold text-blue-400 mb-2">TERRAN DOMINION</h3>
+                <h3 className="text-sm sm:text-lg font-bold text-blue-400 mb-2">TERRAN DOMINION</h3>
                 
                 {/* Resources */}
                 <div className="bg-black/50 rounded p-2 mb-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-cyan-400">💎 Minerals:</span>
                     <span className="text-white font-mono">{Math.floor(terranResources.minerals)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-green-400">⛽ Vespene:</span>
                     <span className="text-white font-mono">{Math.floor(terranResources.vespeneGas)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-yellow-400">🏠 Supply:</span>
                     <span className="text-white font-mono">{terranResources.supply}/{terranResources.maxSupply}</span>
                   </div>
@@ -1588,15 +1589,15 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
                 
                 {/* Resources */}
                 <div className="bg-black/50 rounded p-2 mb-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-cyan-400">💎 Minerals:</span>
                     <span className="text-white font-mono">{Math.floor(zergResources.minerals)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-green-400">⛽ Vespene:</span>
                     <span className="text-white font-mono">{Math.floor(zergResources.vespeneGas)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-yellow-400">🏠 Supply:</span>
                     <span className="text-white font-mono">{zergResources.supply}/{zergResources.maxSupply}</span>
                   </div>

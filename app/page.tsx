@@ -32,6 +32,7 @@ export default function Home() {
   const [isMoonRTSOpen, setIsMoonRTSOpen] = useState(false);
   const [countries, setCountries] = useState<{ features: any[] }>({ features: [] }); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [currentView, setCurrentView] = useState<'earth' | 'moon' | 'mars' | 'simulate'>('earth');
+  const [showMobileCountryList, setShowMobileCountryList] = useState(false);
   // const [starData, setStarData] = useState<any[]>([]); // Currently unused
   
   // Load world topology
@@ -386,17 +387,87 @@ export default function Home() {
         <Footer />
       </div>
       
+      {/* Mobile Country List Panel */}
+      <AnimatePresence>
+        {showMobileCountryList && (
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 30 }}
+            className="fixed inset-x-0 bottom-0 z-[150] bg-gradient-to-br from-black/95 via-gray-900/95 to-black/95 backdrop-blur-xl rounded-t-3xl border-t border-white/10 md:hidden"
+            style={{ maxHeight: '70vh' }}
+          >
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-white">Select Country</h3>
+                <button
+                  onClick={() => setShowMobileCountryList(false)}
+                  className="text-gray-400 hover:text-white p-2"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="space-y-1 overflow-y-auto max-h-[50vh] custom-scrollbar">
+                {worldCountries
+                  .sort((a, b) => a.birthRate - b.birthRate)
+                  .map((country) => (
+                    <motion.button
+                      key={country.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setSelectedCountry(country);
+                        setShowMobileCountryList(false);
+                        setCurrentView('earth');
+                      }}
+                      className="w-full text-left bg-white/5 hover:bg-white/10 rounded-lg p-3 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">{country.flag}</span>
+                        <div>
+                          <p className="text-sm font-medium text-white">{country.name}</p>
+                          <p className="text-xs text-gray-400">Pop: {country.population.toFixed(1)}M</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className={`text-sm font-bold ${
+                          country.birthRate < 1.5 ? 'text-red-400' : 
+                          country.birthRate < 2.1 ? 'text-yellow-400' : 
+                          'text-green-400'
+                        }`}>
+                          {country.birthRate}
+                        </p>
+                        <p className="text-xs text-gray-500">Birth Rate</p>
+                      </div>
+                    </motion.button>
+                  ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Mobile Navigation */}
       <MobileNav 
+        onEarthClick={() => {
+          setShowMobileCountryList(false);
+          setIsMoonRTSOpen(false);
+          setIsMarsModalOpen(false);
+          setIsModalOpen(false);
+          setCurrentView('earth');
+        }}
         onSimulateClick={() => {
-          setIsModalOpen(true);
+          setShowMobileCountryList(true);
           setCurrentView('simulate');
         }}
         onMoonClick={() => {
+          setShowMobileCountryList(false);
           setIsMoonRTSOpen(true);
           setCurrentView('moon');
         }}
         onMarsClick={() => {
+          setShowMobileCountryList(false);
           setIsMarsModalOpen(true);
           setCurrentView('mars');
         }}

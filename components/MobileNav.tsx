@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface MobileNavProps {
+  onEarthClick: () => void;
   onSimulateClick: () => void;
   onMoonClick: () => void;
   onMarsClick: () => void;
@@ -10,16 +12,24 @@ interface MobileNavProps {
 }
 
 export default function MobileNav({ 
+  onEarthClick,
   onSimulateClick, 
   onMoonClick, 
   onMarsClick,
   currentView 
 }: MobileNavProps) {
+  const [showMarsToast, setShowMarsToast] = useState(false);
+  
+  const handleMarsClick = () => {
+    setShowMarsToast(true);
+    setTimeout(() => setShowMarsToast(false), 3000);
+  };
+  
   const navItems = [
-    { id: 'earth', icon: '🌍', label: 'Earth', onClick: () => {} },
+    { id: 'earth', icon: '🌍', label: 'Earth', onClick: onEarthClick },
     { id: 'simulate', icon: '📊', label: 'Simulate', onClick: onSimulateClick },
     { id: 'moon', icon: '🌙', label: 'Moon', onClick: onMoonClick },
-    { id: 'mars', icon: '🚀', label: 'Mars', onClick: onMarsClick },
+    { id: 'mars', icon: '🚀', label: 'Mars', onClick: handleMarsClick },
   ];
 
   return (
@@ -36,12 +46,14 @@ export default function MobileNav({
             whileTap={{ scale: 0.95 }}
             onClick={item.onClick}
             className={`
-              flex flex-col items-center justify-center p-3 rounded-lg transition-all
+              relative flex flex-col items-center justify-center p-3 rounded-lg transition-all
               ${currentView === item.id 
                 ? 'bg-gradient-to-t from-purple-600/30 to-cyan-600/30 border border-cyan-500/30' 
                 : 'hover:bg-white/5'
               }
+              ${item.id === 'mars' ? 'opacity-50 cursor-not-allowed' : ''}
             `}
+            disabled={item.id === 'mars'}
           >
             <motion.span 
               className="text-2xl mb-1"
@@ -58,12 +70,12 @@ export default function MobileNav({
               {item.label}
             </span>
             {item.id === 'moon' && (
-              <span className="absolute top-1 right-1 px-1 py-0.5 bg-yellow-500/20 text-yellow-400 text-[8px] font-bold rounded">
+              <span className="absolute -top-1 -right-1 px-1.5 py-0.5 bg-yellow-500/30 border border-yellow-500/50 text-yellow-400 text-[8px] font-bold rounded">
                 BETA
               </span>
             )}
             {item.id === 'mars' && (
-              <span className="absolute top-1 right-1 text-[10px]">🔒</span>
+              <span className="absolute -top-1 -right-1 text-xs">🔒</span>
             )}
           </motion.button>
         ))}
