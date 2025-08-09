@@ -292,8 +292,10 @@ export default function Home() {
             </div>
             <div className="w-px h-8 bg-white/20"></div>
             <div className="text-center">
-              <p className="text-gray-400 text-xs">World Average</p>
-              <p className="text-2xl font-bold text-yellow-400">2.4</p>
+              <p className="text-gray-400 text-xs">Data Average</p>
+              <p className="text-2xl font-bold text-yellow-400">
+                {(worldCountries.reduce((sum, c) => sum + c.birthRate, 0) / worldCountries.length).toFixed(2)}
+              </p>
             </div>
           </div>
         </motion.div>
