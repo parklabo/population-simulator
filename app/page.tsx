@@ -93,12 +93,12 @@ export default function Home() {
   };
   
   return (
-    <div className="relative w-full h-screen bg-black overflow-hidden">
+    <div className="relative w-full min-h-screen h-[100dvh] bg-black overflow-hidden touch-none">
       {/* Animated Starfield Background */}
       <StarField />
       
       {/* Globe */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 flex items-center justify-center pb-16 md:pb-0">
         <Globe
           ref={globeEl}
           globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
@@ -142,7 +142,7 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
-          className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4 md:p-8 pointer-events-auto"
+          className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-3 sm:p-4 md:p-8 pointer-events-auto z-10"
         >
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div>
@@ -159,7 +159,7 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
-          className="hidden md:block absolute top-32 left-8 bg-gradient-to-br from-black/80 via-gray-900/80 to-black/80 backdrop-blur-xl rounded-2xl border border-white/5 shadow-2xl pointer-events-auto max-w-xs overflow-hidden"
+          className="hidden lg:block absolute top-32 left-8 bg-gradient-to-br from-black/80 via-gray-900/80 to-black/80 backdrop-blur-xl rounded-2xl border border-white/5 shadow-2xl pointer-events-auto max-w-xs overflow-hidden z-20"
         >
           {/* Header with Gradient */}
           <div className="bg-gradient-to-r from-red-600/20 to-orange-600/20 p-4 border-b border-white/10">
@@ -286,12 +286,12 @@ export default function Home() {
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 50 }}
-              className="absolute top-32 right-8 bg-black/80 backdrop-blur-xl rounded-2xl p-6 border border-white/20 pointer-events-auto w-96"
+              className="fixed sm:absolute bottom-20 sm:top-32 left-4 right-4 sm:right-8 sm:left-auto bg-black/90 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/20 pointer-events-auto sm:w-96 z-30 max-h-[60vh] sm:max-h-none overflow-y-auto"
             >
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-                    <span className="text-4xl">{selectedCountry.flag}</span>
+                  <h2 className="text-xl sm:text-3xl font-bold text-white flex items-center gap-2 sm:gap-3">
+                    <span className="text-2xl sm:text-4xl">{selectedCountry.flag}</span>
                     {selectedCountry.name}
                   </h2>
                   {selectedCountry.isCelestial && (

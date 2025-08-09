@@ -27,7 +27,7 @@ export default function MobileNav({
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-xl border-t border-white/10 md:hidden z-50 safe-bottom"
+      className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/20 md:hidden z-[100] safe-bottom"
     >
       <div className="grid grid-cols-4 gap-1 px-2 py-1">
         {navItems.map((item) => (

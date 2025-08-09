@@ -9,7 +9,7 @@ export default function Footer() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 0.5 }}
-      className="fixed bottom-4 right-4 z-40"
+      className="hidden md:fixed md:bottom-4 md:right-4 md:z-40"
     >
       <div className="flex items-center gap-3 bg-black/60 backdrop-blur-md rounded-full px-4 py-2 border border-white/10">
         <div className="flex items-center gap-2">
