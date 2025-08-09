@@ -215,7 +215,6 @@ export default function Home() {
                     <span className="text-4xl">{selectedCountry.flag}</span>
                     {selectedCountry.name}
                   </h2>
-                  <p className="text-gray-400 text-sm mt-1">{selectedCountry.nameKr}</p>
                 </div>
                 <button
                   onClick={() => setSelectedCountry(null)}
