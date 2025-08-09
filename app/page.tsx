@@ -134,41 +134,74 @@ export default function Home() {
           </div>
         </motion.div>
         
-        {/* Legend and Country Rankings */}
+        {/* Modern Side Panel */}
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
-          className="absolute top-32 left-8 bg-black/60 backdrop-blur-lg rounded-xl p-4 border border-white/10 pointer-events-auto max-w-xs"
+          className="absolute top-32 left-8 bg-gradient-to-br from-black/80 via-gray-900/80 to-black/80 backdrop-blur-xl rounded-2xl border border-white/5 shadow-2xl pointer-events-auto max-w-xs overflow-hidden"
         >
-          <h3 className="text-white font-semibold mb-3">Birth Rate Crisis Levels</h3>
-          <div className="space-y-2 mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-              <span className="text-gray-300 text-sm">&lt; 1.0 - Extreme</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
-              <span className="text-gray-300 text-sm">1.0 - 1.5 - Severe</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
-              <span className="text-gray-300 text-sm">1.5 - 2.1 - Critical</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-              <span className="text-gray-300 text-sm">&gt; 2.1 - Stable</span>
+          {/* Header with Gradient */}
+          <div className="bg-gradient-to-r from-red-600/20 to-orange-600/20 p-4 border-b border-white/10">
+            <h3 className="text-white font-bold text-lg flex items-center gap-2">
+              <span className="text-2xl">🌍</span>
+              Global Birth Crisis
+            </h3>
+            <p className="text-gray-400 text-xs mt-1">Real-time demographic data</p>
+          </div>
+          
+          {/* Crisis Indicators */}
+          <div className="p-4">
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-[10px] text-red-400 font-semibold">EXTREME</span>
+                </div>
+                <p className="text-white text-sm font-bold mt-1">&lt; 1.0</p>
+              </div>
+              <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <span className="text-[10px] text-orange-400 font-semibold">SEVERE</span>
+                </div>
+                <p className="text-white text-sm font-bold mt-1">1.0-1.5</p>
+              </div>
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  <span className="text-[10px] text-yellow-400 font-semibold">CRITICAL</span>
+                </div>
+                <p className="text-white text-sm font-bold mt-1">1.5-2.1</p>
+              </div>
+              <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-[10px] text-green-400 font-semibold">STABLE</span>
+                </div>
+                <p className="text-white text-sm font-bold mt-1">&gt; 2.1</p>
+              </div>
             </div>
           </div>
           
-          {/* Country Rankings */}
-          <div className="border-t border-white/10 pt-4">
-            <h4 className="text-white font-semibold mb-3">Birth Rate Rankings</h4>
-            <div className="space-y-1 max-h-80 overflow-y-auto pr-1 mb-3">
+          {/* Country Rankings Section */}
+          <div className="px-4 pb-3">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-white font-semibold text-sm">Top Crisis Countries</h4>
+              <span className="text-[10px] text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">
+                {worldCountries.length} countries
+              </span>
+            </div>
+            
+            <div className="space-y-0.5 max-h-64 overflow-y-auto custom-scrollbar">
               {worldCountries
                 .sort((a, b) => a.birthRate - b.birthRate)
+                .slice(0, 15)
                 .map((country, index) => (
-                  <button
+                  <motion.button
                     key={country.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.02 }}
                     onClick={() => {
                       if (globeEl.current) {
                         setSelectedCountry(country);
@@ -179,33 +212,55 @@ export default function Home() {
                         }, 1000);
                       }
                     }}
-                    className="w-full flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/10 transition-colors text-left"
+                    className="w-full group relative overflow-hidden"
                   >
-                    <span className="text-gray-500 text-xs w-6 text-right">{index + 1}</span>
-                    <span className="text-base">{country.flag}</span>
-                    <span className="text-white text-xs flex-1 truncate" title={country.name}>
-                      {country.name.length > 12 ? country.name.substring(0, 12) + '...' : country.name}
-                    </span>
-                    <span className={`text-xs font-bold ${
-                      country.birthRate < 1.0 ? 'text-red-400' : 
-                      country.birthRate < 1.5 ? 'text-orange-400' : 
-                      country.birthRate < 2.1 ? 'text-yellow-400' :
-                      'text-green-400'
-                    }`}>
-                      {country.birthRate}
-                    </span>
-                  </button>
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                    <div className="relative flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-all">
+                      <span className={`text-[10px] font-mono w-5 ${index < 3 ? 'text-red-400 font-bold' : 'text-gray-500'}`}>
+                        {index + 1}
+                      </span>
+                      <span className="text-lg">{country.flag}</span>
+                      <span className="text-white text-xs flex-1 text-left font-medium">
+                        {country.name}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <div className={`w-1.5 h-1.5 rounded-full ${
+                          country.birthRate < 1.0 ? 'bg-red-500 animate-pulse' : 
+                          country.birthRate < 1.5 ? 'bg-orange-500' : 
+                          'bg-yellow-500'
+                        }`}></div>
+                        <span className={`text-xs font-mono font-bold ${
+                          country.birthRate < 1.0 ? 'text-red-400' : 
+                          country.birthRate < 1.5 ? 'text-orange-400' : 
+                          'text-yellow-400'
+                        }`}>
+                          {country.birthRate.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.button>
                 ))}
             </div>
             
-            {/* Data Source - Bottom */}
-            <div className="pt-3 border-t border-white/5">
-              <div className="flex items-center gap-2 px-2">
-                <div className="w-1 h-1 bg-cyan-400 rounded-full animate-pulse"></div>
-                <p className="text-[10px] text-gray-500 font-mono tracking-wider">
-                  DATA: UN POPULATION DIVISION 2024
+            {/* Show More Button */}
+            <button className="w-full mt-2 py-2 text-[10px] text-gray-400 hover:text-white transition-colors flex items-center justify-center gap-1">
+              <span>View all {worldCountries.length} countries</span>
+              <span>→</span>
+            </button>
+          </div>
+          
+          {/* Footer with Data Source */}
+          <div className="bg-gradient-to-r from-cyan-600/10 to-purple-600/10 border-t border-white/10 p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full animate-pulse"></div>
+                <p className="text-[9px] text-gray-400 font-mono tracking-wider">
+                  UN DATA 2024
                 </p>
               </div>
+              <p className="text-[9px] text-gray-500">
+                LIVE UPDATE
+              </p>
             </div>
           </div>
         </motion.div>
