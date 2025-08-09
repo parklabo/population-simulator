@@ -15,16 +15,18 @@ export const metadata: Metadata = {
   publisher: 'YonYonWare',
   keywords: ['population', 'simulation', 'demographics', 'birth rate', 'YonYonWare'],
   openGraph: {
-    title: 'Population Simulator',
+    title: 'Population Simulator | YonYonWare',
     description: 'Visualize demographic futures with real-time birth rate simulations',
+    url: 'https://population-simulator.park-labs.com',
     siteName: 'Population Simulator',
+    locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Population Simulator',
+    title: 'Population Simulator | YonYonWare',
     description: 'Visualize demographic futures with real-time birth rate simulations',
-    creator: '@YonYonWare',
+    creator: '@YoungsuPark6',
   },
   icons: {
     icon: [
