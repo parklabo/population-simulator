@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart } from 'recharts';
-import CountUp from 'react-countup';
+// import CountUp from 'react-countup'; // Currently unused
 
 interface MarsColonyModalProps {
   isOpen: boolean;
@@ -26,7 +26,7 @@ export default function MarsColonyModal({ isOpen, onClose }: MarsColonyModalProp
   const [humans, setHumans] = useState(0);
   const [roaches, setRoaches] = useState(0);
   const [casualties, setCasualties] = useState(0);
-  const [terraformingLevel, setTerraformingLevel] = useState(0);
+  const [terraformingLevel, setTerraformingLevel] = useState(0); // Used for progress tracking
   const [battleIntensity, setBattleIntensity] = useState(0);
   const [prevYearRoaches, setPrevYearRoaches] = useState(0);
   
@@ -51,7 +51,7 @@ export default function MarsColonyModal({ isOpen, onClose }: MarsColonyModalProp
   const [missionStatus, setMissionStatus] = useState<'ongoing' | 'success' | 'failure'>('ongoing');
 
   // 3D rotation for Mars
-  const [marsRotation, setMarsRotation] = useState(0);
+  const [marsRotation, setMarsRotation] = useState(0); // Used for animation
   const animationFrame = useRef<number>(0);
 
   // Equipment production rates - memoized to prevent infinite re-renders
@@ -208,7 +208,7 @@ export default function MarsColonyModal({ isOpen, onClose }: MarsColonyModalProp
   useEffect(() => {
     if (hasStarted) {
       const animate = () => {
-        setMarsRotation(prev => prev + 1);
+        setMarsRotation(prev => prev + 1); // Animation rotation
         animationFrame.current = requestAnimationFrame(animate);
       };
       animationFrame.current = requestAnimationFrame(animate);
