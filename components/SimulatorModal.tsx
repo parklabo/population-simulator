@@ -17,7 +17,6 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
   const [currentYear, setCurrentYear] = useState(2025);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasStarted, setHasStarted] = useState(false); // Track if simulation has started
-  const [animationSpeed, setAnimationSpeed] = useState(100); // ms per year
   
   const [params, setParams] = useState<SimulationParams>({
     currentPopulation: country.population,
@@ -56,10 +55,10 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
         }
         return prev + 1;
       });
-    }, animationSpeed);
+    }, 50); // Fixed speed: 50ms per year
     
     return () => clearInterval(interval);
-  }, [isPlaying, animationSpeed]);
+  }, [isPlaying]);
   
   // Chart data up to current year (only when simulation has started)
   const chartData = useMemo(() => {
@@ -159,27 +158,47 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
             <div className="mt-4 flex items-center justify-center gap-4">
               <button
                 onClick={startTimeLapse}
-                disabled={isPlaying}
-                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all"
               >
-                {isPlaying ? '⏸ Pause' : '▶ Start Time-Lapse'}
+                ▶ Start Time-Lapse
               </button>
               <button
                 onClick={() => setIsPlaying(!isPlaying)}
                 className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
               >
-                {isPlaying ? 'Pause' : 'Resume'}
+                {isPlaying ? '⏸ Pause' : '▶ Resume'}
               </button>
-              <select
-                value={animationSpeed}
-                onChange={(e) => setAnimationSpeed(Number(e.target.value))}
-                className="px-4 py-2 bg-gray-800 text-white rounded-lg"
+              <button
+                onClick={() => {
+                  setCurrentYear(2025);
+                  setIsPlaying(false);
+                }}
+                className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
               >
-                <option value={200}>Slow</option>
-                <option value={100}>Normal</option>
-                <option value={50}>Fast</option>
-                <option value={20}>Very Fast</option>
-              </select>
+                ↺ Reset
+              </button>
+            </div>
+            
+            {/* Year Selector */}
+            <div className="mt-6 px-8">
+              <input
+                type="range"
+                min="2025"
+                max="2100"
+                step="1"
+                value={currentYear}
+                onChange={(e) => {
+                  setCurrentYear(Number(e.target.value));
+                  setHasStarted(true);
+                }}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-gray-400 mt-1">
+                <span>2025</span>
+                <span>2050</span>
+                <span>2075</span>
+                <span>2100</span>
+              </div>
             </div>
           </div>
           
