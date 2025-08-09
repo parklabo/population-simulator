@@ -23,7 +23,8 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
     birthRate: country.birthRate,
     lifeExpectancy: country.lifeExpectancy,
     immigrationRate: 0,
-    startYear: 2025
+    startYear: 2025,
+    ageStructure: country.ageStructure
   });
   
   // Reset parameters when country changes
@@ -33,7 +34,8 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
       birthRate: country.birthRate,
       lifeExpectancy: country.lifeExpectancy,
       immigrationRate: 0,
-      startYear: 2025
+      startYear: 2025,
+      ageStructure: country.ageStructure
     });
     setCurrentYear(2025);
     setIsPlaying(false);
@@ -383,6 +385,14 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
               )}
             </div>
           )}
+          
+          {/* Data Source */}
+          <div className="mt-6 pt-4 border-t border-gray-700">
+            <p className="text-xs text-gray-500 text-center">
+              Data Source: UN Population Division, World Population Prospects 2024
+              {country.ageStructure && " | Age structure data available"}
+            </p>
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>

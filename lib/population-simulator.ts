@@ -4,6 +4,11 @@ export interface SimulationParams {
   lifeExpectancy: number; // years
   immigrationRate: number; // thousands per year
   startYear?: number;
+  ageStructure?: {
+    youth: number;    // % of 0-14 years
+    working: number;  // % of 15-64 years
+    elderly: number;  // % of 65+ years
+  };
 }
 
 export interface PopulationData {
@@ -50,35 +55,44 @@ export class PopulationSimulator {
     const data: PopulationData[] = [];
     const initialPop = currentPopulation * 1000000; // Convert to actual numbers
     
-    // Initialize age structure based on birth rate (more realistic)
-    // Countries with lower birth rates tend to have fewer youth and more elderly
+    // Initialize age structure - use UN data if available, otherwise estimate based on birth rate
     let youthRatio: number;
     let elderlyRatio: number;
+    let workingRatio: number;
     
-    if (birthRate < 1.0) {
-      // Extreme crisis (like Korea, Taiwan)
-      youthRatio = 0.11;  // 11% youth
-      elderlyRatio = 0.18; // 18% elderly
-    } else if (birthRate < 1.5) {
-      // Severe crisis (like Japan, Italy)
-      youthRatio = 0.13;  // 13% youth
-      elderlyRatio = 0.20; // 20% elderly
-    } else if (birthRate < 2.1) {
-      // Below replacement
-      youthRatio = 0.16;  // 16% youth
-      elderlyRatio = 0.15; // 15% elderly
-    } else if (birthRate < 3.0) {
-      // Near or above replacement
-      youthRatio = 0.20;  // 20% youth
-      elderlyRatio = 0.12; // 12% elderly
+    if (params.ageStructure) {
+      // Use actual UN data if provided
+      youthRatio = params.ageStructure.youth / 100;
+      workingRatio = params.ageStructure.working / 100;
+      elderlyRatio = params.ageStructure.elderly / 100;
     } else {
-      // High birth rate (developing countries)
-      youthRatio = 0.30;  // 30% youth
-      elderlyRatio = 0.08; // 8% elderly
+      // Fallback to birth rate estimation
+      if (birthRate < 1.0) {
+        // Extreme crisis (like Korea, Taiwan)
+        youthRatio = 0.11;  // 11% youth
+        elderlyRatio = 0.18; // 18% elderly
+      } else if (birthRate < 1.5) {
+        // Severe crisis (like Japan, Italy)
+        youthRatio = 0.13;  // 13% youth
+        elderlyRatio = 0.20; // 20% elderly
+      } else if (birthRate < 2.1) {
+        // Below replacement
+        youthRatio = 0.16;  // 16% youth
+        elderlyRatio = 0.15; // 15% elderly
+      } else if (birthRate < 3.0) {
+        // Near or above replacement
+        youthRatio = 0.20;  // 20% youth
+        elderlyRatio = 0.12; // 12% elderly
+      } else {
+        // High birth rate (developing countries)
+        youthRatio = 0.30;  // 30% youth
+        elderlyRatio = 0.08; // 8% elderly
+      }
+      workingRatio = 1 - youthRatio - elderlyRatio;
     }
     
     let youth = initialPop * youthRatio;
-    let workingAge = initialPop * (1 - youthRatio - elderlyRatio);
+    let workingAge = initialPop * workingRatio;
     let elderly = initialPop * elderlyRatio;
     
     let peakPopulation = currentPopulation;

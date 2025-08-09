@@ -11,27 +11,95 @@ export interface CountryData {
   lng: number;
   color: string;
   flag: string;
+  // UN Population Division Data (2024)
+  ageStructure?: {
+    youth: number;      // 0-14 years (%)
+    working: number;    // 15-64 years (%)
+    elderly: number;    // 65+ years (%)
+    medianAge: number;  // Median age
+  };
 }
 
 export const worldCountries: CountryData[] = [
   // Asia - Critical
-  { id: 'KR', name: 'South Korea', nameKr: '대한민국', population: 51.8, birthRate: 0.72, deathRate: 7.3, lifeExpectancy: 83, continent: 'Asia', lat: 37.5665, lng: 126.9780, color: '#FF0000', flag: '🇰🇷' },
-  { id: 'JP', name: 'Japan', nameKr: '일본', population: 125.8, birthRate: 1.26, deathRate: 11.1, lifeExpectancy: 84, continent: 'Asia', lat: 35.6762, lng: 139.6503, color: '#FF4500', flag: '🇯🇵' },
-  { id: 'CN', name: 'China', nameKr: '중국', population: 1411.0, birthRate: 1.40, deathRate: 7.4, lifeExpectancy: 77, continent: 'Asia', lat: 39.9042, lng: 116.4074, color: '#FF6B6B', flag: '🇨🇳' },
-  { id: 'TW', name: 'Taiwan', nameKr: '대만', population: 23.6, birthRate: 0.90, deathRate: 7.8, lifeExpectancy: 81, continent: 'Asia', lat: 25.0330, lng: 121.5654, color: '#FF0000', flag: '🇹🇼' },
-  { id: 'SG', name: 'Singapore', nameKr: '싱가포르', population: 5.9, birthRate: 0.85, deathRate: 5.1, lifeExpectancy: 83, continent: 'Asia', lat: 1.3521, lng: 103.8198, color: '#FF0000', flag: '🇸🇬' },
-  { id: 'HK', name: 'Hong Kong', nameKr: '홍콩', population: 7.5, birthRate: 0.77, deathRate: 7.2, lifeExpectancy: 85, continent: 'Asia', lat: 22.3193, lng: 114.1694, color: '#FF0000', flag: '🇭🇰' },
-  { id: 'TH', name: 'Thailand', nameKr: '태국', population: 70.0, birthRate: 1.51, deathRate: 8.3, lifeExpectancy: 77, continent: 'Asia', lat: 13.7563, lng: 100.5018, color: '#FFA500', flag: '🇹🇭' },
+  // Data Source: UN Population Division, World Population Prospects 2024
+  { 
+    id: 'KR', name: 'South Korea', nameKr: '대한민국', population: 51.8, birthRate: 0.72, deathRate: 7.3, lifeExpectancy: 83, 
+    continent: 'Asia', lat: 37.5665, lng: 126.9780, color: '#FF0000', flag: '🇰🇷',
+    ageStructure: { youth: 11.8, working: 70.2, elderly: 18.0, medianAge: 44.5 }
+  },
+  { 
+    id: 'JP', name: 'Japan', nameKr: '일본', population: 125.8, birthRate: 1.26, deathRate: 11.1, lifeExpectancy: 84, 
+    continent: 'Asia', lat: 35.6762, lng: 139.6503, color: '#FF4500', flag: '🇯🇵',
+    ageStructure: { youth: 11.5, working: 58.5, elderly: 30.0, medianAge: 48.7 }
+  },
+  { 
+    id: 'CN', name: 'China', nameKr: '중국', population: 1411.0, birthRate: 1.40, deathRate: 7.4, lifeExpectancy: 77, 
+    continent: 'Asia', lat: 39.9042, lng: 116.4074, color: '#FF6B6B', flag: '🇨🇳',
+    ageStructure: { youth: 16.8, working: 69.0, elderly: 14.2, medianAge: 39.5 }
+  },
+  { 
+    id: 'TW', name: 'Taiwan', nameKr: '대만', population: 23.6, birthRate: 0.90, deathRate: 7.8, lifeExpectancy: 81, 
+    continent: 'Asia', lat: 25.0330, lng: 121.5654, color: '#FF0000', flag: '🇹🇼',
+    ageStructure: { youth: 11.9, working: 70.0, elderly: 18.1, medianAge: 43.5 }
+  },
+  { 
+    id: 'SG', name: 'Singapore', nameKr: '싱가포르', population: 5.9, birthRate: 0.85, deathRate: 5.1, lifeExpectancy: 83, 
+    continent: 'Asia', lat: 1.3521, lng: 103.8198, color: '#FF0000', flag: '🇸🇬',
+    ageStructure: { youth: 11.4, working: 74.1, elderly: 14.5, medianAge: 42.8 }
+  },
+  { 
+    id: 'HK', name: 'Hong Kong', nameKr: '홍콩', population: 7.5, birthRate: 0.77, deathRate: 7.2, lifeExpectancy: 85, 
+    continent: 'Asia', lat: 22.3193, lng: 114.1694, color: '#FF0000', flag: '🇭🇰',
+    ageStructure: { youth: 11.0, working: 68.0, elderly: 21.0, medianAge: 46.5 }
+  },
+  { 
+    id: 'TH', name: 'Thailand', nameKr: '태국', population: 70.0, birthRate: 1.51, deathRate: 8.3, lifeExpectancy: 77, 
+    continent: 'Asia', lat: 13.7563, lng: 100.5018, color: '#FFA500', flag: '🇹🇭',
+    ageStructure: { youth: 15.7, working: 69.5, elderly: 14.8, medianAge: 40.5 }
+  },
   
   // Europe - Critical
-  { id: 'IT', name: 'Italy', nameKr: '이탈리아', population: 60.3, birthRate: 1.20, deathRate: 11.3, lifeExpectancy: 83, continent: 'Europe', lat: 41.9028, lng: 12.4964, color: '#FF4500', flag: '🇮🇹' },
-  { id: 'ES', name: 'Spain', nameKr: '스페인', population: 47.4, birthRate: 1.16, deathRate: 9.5, lifeExpectancy: 83, continent: 'Europe', lat: 40.4168, lng: -3.7038, color: '#FF4500', flag: '🇪🇸' },
-  { id: 'DE', name: 'Germany', nameKr: '독일', population: 83.2, birthRate: 1.49, deathRate: 11.5, lifeExpectancy: 81, continent: 'Europe', lat: 52.5200, lng: 13.4050, color: '#FF6B6B', flag: '🇩🇪' },
-  { id: 'PL', name: 'Poland', nameKr: '폴란드', population: 37.8, birthRate: 1.35, deathRate: 11.2, lifeExpectancy: 78, continent: 'Europe', lat: 52.2297, lng: 21.0122, color: '#FF4500', flag: '🇵🇱' },
-  { id: 'PT', name: 'Portugal', nameKr: '포르투갈', population: 10.3, birthRate: 1.31, deathRate: 11.0, lifeExpectancy: 82, continent: 'Europe', lat: 38.7223, lng: -9.1393, color: '#FF4500', flag: '🇵🇹' },
-  { id: 'GR', name: 'Greece', nameKr: '그리스', population: 10.7, birthRate: 1.32, deathRate: 11.6, lifeExpectancy: 82, continent: 'Europe', lat: 37.9838, lng: 23.7275, color: '#FF4500', flag: '🇬🇷' },
-  { id: 'FR', name: 'France', nameKr: '프랑스', population: 67.4, birthRate: 1.80, deathRate: 9.4, lifeExpectancy: 82, continent: 'Europe', lat: 48.8566, lng: 2.3522, color: '#FFA500', flag: '🇫🇷' },
-  { id: 'GB', name: 'United Kingdom', nameKr: '영국', population: 67.7, birthRate: 1.65, deathRate: 9.3, lifeExpectancy: 81, continent: 'Europe', lat: 51.5074, lng: -0.1278, color: '#FFA500', flag: '🇬🇧' },
+  { 
+    id: 'IT', name: 'Italy', nameKr: '이탈리아', population: 60.3, birthRate: 1.20, deathRate: 11.3, lifeExpectancy: 83, 
+    continent: 'Europe', lat: 41.9028, lng: 12.4964, color: '#FF4500', flag: '🇮🇹',
+    ageStructure: { youth: 12.4, working: 63.5, elderly: 24.1, medianAge: 47.2 }
+  },
+  { 
+    id: 'ES', name: 'Spain', nameKr: '스페인', population: 47.4, birthRate: 1.16, deathRate: 9.5, lifeExpectancy: 83, 
+    continent: 'Europe', lat: 40.4168, lng: -3.7038, color: '#FF4500', flag: '🇪🇸',
+    ageStructure: { youth: 13.7, working: 65.3, elderly: 21.0, medianAge: 44.9 }
+  },
+  { 
+    id: 'DE', name: 'Germany', nameKr: '독일', population: 83.2, birthRate: 1.49, deathRate: 11.5, lifeExpectancy: 81, 
+    continent: 'Europe', lat: 52.5200, lng: 13.4050, color: '#FF6B6B', flag: '🇩🇪',
+    ageStructure: { youth: 13.8, working: 63.7, elderly: 22.5, medianAge: 45.9 }
+  },
+  { 
+    id: 'PL', name: 'Poland', nameKr: '폴란드', population: 37.8, birthRate: 1.35, deathRate: 11.2, lifeExpectancy: 78, 
+    continent: 'Europe', lat: 52.2297, lng: 21.0122, color: '#FF4500', flag: '🇵🇱',
+    ageStructure: { youth: 15.2, working: 65.8, elderly: 19.0, medianAge: 42.0 }
+  },
+  { 
+    id: 'PT', name: 'Portugal', nameKr: '포르투갈', population: 10.3, birthRate: 1.31, deathRate: 11.0, lifeExpectancy: 82, 
+    continent: 'Europe', lat: 38.7223, lng: -9.1393, color: '#FF4500', flag: '🇵🇹',
+    ageStructure: { youth: 12.9, working: 63.8, elderly: 23.3, medianAge: 46.8 }
+  },
+  { 
+    id: 'GR', name: 'Greece', nameKr: '그리스', population: 10.7, birthRate: 1.32, deathRate: 11.6, lifeExpectancy: 82, 
+    continent: 'Europe', lat: 37.9838, lng: 23.7275, color: '#FF4500', flag: '🇬🇷',
+    ageStructure: { youth: 13.5, working: 63.1, elderly: 23.4, medianAge: 46.1 }
+  },
+  { 
+    id: 'FR', name: 'France', nameKr: '프랑스', population: 67.4, birthRate: 1.80, deathRate: 9.4, lifeExpectancy: 82, 
+    continent: 'Europe', lat: 48.8566, lng: 2.3522, color: '#FFA500', flag: '🇫🇷',
+    ageStructure: { youth: 17.5, working: 61.5, elderly: 21.0, medianAge: 42.2 }
+  },
+  { 
+    id: 'GB', name: 'United Kingdom', nameKr: '영국', population: 67.7, birthRate: 1.65, deathRate: 9.3, lifeExpectancy: 81, 
+    continent: 'Europe', lat: 51.5074, lng: -0.1278, color: '#FFA500', flag: '🇬🇧',
+    ageStructure: { youth: 17.6, working: 63.6, elderly: 18.8, medianAge: 40.6 }
+  },
   
   // Americas
   { id: 'US', name: 'United States', nameKr: '미국', population: 331.9, birthRate: 1.70, deathRate: 8.7, lifeExpectancy: 79, continent: 'Americas', lat: 38.9072, lng: -77.0369, color: '#FFA500', flag: '🇺🇸' },
