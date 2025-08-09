@@ -34,14 +34,15 @@ interface Unit {
 }
 
 // Building types
-interface Building {
-  id: string;
-  type: 'command_center' | 'supply_depot' | 'barracks' | 'factory' | 'starport' | 'hatchery' | 'spawning_pool' | 'roach_warren';
-  health: number;
-  maxHealth: number;
-  constructionProgress: number;
-  isComplete: boolean;
-}
+// Building interface - currently unused but may be needed for future features
+// interface Building {
+//   id: string;
+//   type: 'command_center' | 'supply_depot' | 'barracks' | 'factory' | 'starport' | 'hatchery' | 'spawning_pool' | 'roach_warren';
+//   health: number;
+//   maxHealth: number;
+//   constructionProgress: number;
+//   isComplete: boolean;
+// }
 
 // Unit stats database (StarCraft-inspired balance)
 const UNIT_STATS = {
@@ -152,7 +153,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
   // const [zergIncome, setZergIncome] = useState({ minerals: 0, gas: 0 });
   
   // Battle state
-  const [battleLog, setBattleLog] = useState<string[]>([]);
+  // const [battleLog, setBattleLog] = useState<string[]>([]);
   const [terranCasualties, setTerranCasualties] = useState(0);
   const [zergCasualties, setZergCasualties] = useState(0);
   const [gameWinner, setGameWinner] = useState<string | null>(null);
@@ -226,7 +227,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
         if (gameTime % 2 === 0) { // Every 2 seconds - faster decision making
           // Check current state
           const drones = zergUnits.filter(u => u.type === 'drone').length;
-          const zerglings = zergUnits.filter(u => u.type === 'zergling').length;
+          // const zerglings = zergUnits.filter(u => u.type === 'zergling').length;
           const roaches = zergUnits.filter(u => u.type === 'roach').length;
           const hydralisks = zergUnits.filter(u => u.type === 'hydralisk').length;
           const ultralisks = zergUnits.filter(u => u.type === 'ultralisk').length;
@@ -396,7 +397,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
             // Update battle log
             if (terranKills > 0 || zergKills > 0) {
               addMessage(`⚔️ Battle! Terran killed ${terranKills} units, Zerg killed ${zergKills} units`);
-              setBattleLog(prev => [...prev.slice(-4), `T: -${zergKills} | Z: -${terranKills}`]);
+              // setBattleLog(prev => [...prev.slice(-4), `T: -${zergKills} | Z: -${terranKills}`]);
             }
           }
           
@@ -942,7 +943,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
                   setZergCasualties(0);
                   setIsPaused(false);
                   setGameSpeed(1);
-                  setBattleLog([]);
+                  // setBattleLog([]);
                   setMessages([]);
                   setTerranQueue([]);
                   setZergQueue([]);
@@ -1183,7 +1184,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
                         setZergCasualties(0);
                         setIsPaused(false);
                         setGameSpeed(1);
-                        setBattleLog([]);
+                        // setBattleLog([]);
                         setMessages([]);
                         setTerranQueue([]);
                         setZergQueue([]);

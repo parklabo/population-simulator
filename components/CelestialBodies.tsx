@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface CelestialBodiesProps {
-  onMarsClick: () => void;
+  onMarsClick?: () => void;
   onMoonClick: () => void;
 }
 
-export default function CelestialBodies({ onMarsClick, onMoonClick }: CelestialBodiesProps) {
+export default function CelestialBodies({ onMoonClick }: CelestialBodiesProps) {
   const [showMarsToast, setShowMarsToast] = useState(false);
   return (
     <>

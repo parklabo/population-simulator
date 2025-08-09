@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { worldCountries, celestialBodies, getCountryColor, getCrisisLevel, CountryData } from '@/lib/world-data';
+import { worldCountries, getCountryColor, getCrisisLevel, CountryData } from '@/lib/world-data';
 import SimulatorModal from '@/components/SimulatorModal';
 import MarsColonyModal from '@/components/MarsColonyModal';
 import MarsRTSGame from '@/components/MarsRTSGame';
