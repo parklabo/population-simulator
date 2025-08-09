@@ -41,7 +41,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
   }, [country]);
   
   const simulator = useMemo(() => new PopulationSimulator(), []);
-  const projection = useMemo(() => simulator.simulate(params, 125), [params, simulator]); // Extended to 2150 (125 years)
+  const projection = useMemo(() => simulator.simulate(params, 100), [params, simulator]); // 100 years to 2125
   
   // Time-lapse animation
   useEffect(() => {
@@ -49,13 +49,13 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
     
     const interval = setInterval(() => {
       setCurrentYear(prev => {
-        if (prev >= 2150) {
+        if (prev >= 2125) {
           setIsPlaying(false);
-          return 2150;
+          return 2125;
         }
         return prev + 1;
       });
-    }, 40); // Fixed speed: 40ms per year for 125 years
+    }, 50); // Fixed speed: 50ms per year for 100 years
     
     return () => clearInterval(interval);
   }, [isPlaying]);
@@ -101,9 +101,9 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
     return null;
   }, [projection.data]);
   
-  const populationIn2150 = projection.data[projection.data.length - 1]?.totalPopulation || 0;
-  const populationChange = ((populationIn2150 - country.population) / country.population * 100).toFixed(1);
-  const simulationComplete = currentYear >= 2150; // Check if simulation reached end
+  const populationIn2125 = projection.data[projection.data.length - 1]?.totalPopulation || 0;
+  const populationChange = ((populationIn2125 - country.population) / country.population * 100).toFixed(1);
+  const simulationComplete = currentYear >= 2125; // Check if simulation reached end
   
   if (!isOpen) return null;
   
@@ -134,7 +134,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                 <span className="text-4xl">{country.flag}</span>
                 {country.name} Population Simulator
               </h2>
-              <p className="text-gray-400 mt-1">Projecting demographic future from 2025 to 2150</p>
+              <p className="text-gray-400 mt-1">Projecting demographic future from 2025 to 2125</p>
             </div>
             <button
               onClick={onClose}
@@ -185,7 +185,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
               <input
                 type="range"
                 min="2025"
-                max="2150"
+                max="2125"
                 step="1"
                 value={currentYear}
                 onChange={(e) => {
@@ -200,7 +200,6 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                 <span>2075</span>
                 <span>2100</span>
                 <span>2125</span>
-                <span>2150</span>
               </div>
             </div>
           </div>
@@ -340,9 +339,9 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
               <h3 className="text-xl font-semibold text-white mb-4">Projection Results</h3>
               <div className="grid grid-cols-3 gap-6">
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Population in 2150</p>
+                  <p className="text-gray-400 text-sm mb-1">Population in 2125</p>
                   <p className="text-3xl font-bold text-white">
-                    {populationIn2150.toFixed(1)}M
+                    {populationIn2125.toFixed(1)}M
                   </p>
                   <p className={`text-sm mt-1 ${Number(populationChange) < 0 ? 'text-red-400' : 'text-green-400'}`}>
                     {Number(populationChange) > 0 ? '+' : ''}{populationChange}% from 2025
