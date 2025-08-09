@@ -83,6 +83,28 @@ export default function MobileNav({
       
       {/* iPhone home indicator safe area */}
       <div className="h-safe-area-inset-bottom bg-black/90" />
+      
+      {/* Mars Toast notification */}
+      <AnimatePresence>
+        {showMarsToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: -100 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="absolute left-1/2 transform -translate-x-1/2 bottom-20 z-50"
+          >
+            <div className="bg-gray-900/95 backdrop-blur-sm border border-red-500/30 rounded-lg px-4 py-2 shadow-2xl">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🚀</span>
+                <div>
+                  <p className="text-white font-semibold text-sm">Mars Colony - SpaceX Edition</p>
+                  <p className="text-gray-400 text-xs">Elon is still working on it... 🔒</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.nav>
   );
 }
