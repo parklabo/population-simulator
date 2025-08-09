@@ -47,7 +47,7 @@ export class PopulationSimulator {
     const {
       currentPopulation,
       birthRate,
-      lifeExpectancy,
+      // lifeExpectancy, // Currently unused
       immigrationRate,
       startYear = 2025
     } = params;
@@ -106,8 +106,8 @@ export class PopulationSimulator {
       
       if (yearOffset > 0) {
         // Calculate demographic changes
-        const fertilityFactor = birthRate / this.REPLACEMENT_RATE;
-        const generationsPassed = yearOffset / this.GENERATION_LENGTH;
+        // const fertilityFactor = birthRate / this.REPLACEMENT_RATE; // Currently unused
+        // const generationsPassed = yearOffset / this.GENERATION_LENGTH; // Currently unused
         
         // Birth calculations
         const womenOfChildbearingAge = workingAge * 0.25; // Women aged 15-45 roughly
@@ -118,7 +118,7 @@ export class PopulationSimulator {
         const workingMortality = workingAge * 0.003 * 5; // Low working age mortality
         // Elderly mortality based on life expectancy (higher but realistic)
         const elderlyMortality = elderly * (0.04 * 5); // ~4% per year for elderly
-        const totalDeaths = youthMortality + workingMortality + elderlyMortality;
+        // const totalDeaths = youthMortality + workingMortality + elderlyMortality; // Currently unused
         
         // Immigration effect (5-year total)
         const immigrationEffect = immigrationRate * 1000 * 5;
@@ -159,7 +159,7 @@ export class PopulationSimulator {
       const medianAge = 30 + (elderly / totalPop) * 40; // Simplified median age
       
       // Create population pyramid
-      const populationPyramid = this.generatePyramid(youth, workingAge, elderly, totalPop);
+      const populationPyramid = this.generatePyramid(youth, workingAge, elderly);
       
       data.push({
         year: currentYear,
@@ -201,7 +201,7 @@ export class PopulationSimulator {
     };
   }
   
-  private generatePyramid(youth: number, workingAge: number, elderly: number, total: number): AgeGroup[] {
+  private generatePyramid(youth: number, workingAge: number, elderly: number): AgeGroup[] {
     // Simplified population pyramid generation
     const pyramid: AgeGroup[] = [];
     const ageGroups = [

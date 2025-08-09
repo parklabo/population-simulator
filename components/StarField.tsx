@@ -25,7 +25,7 @@ interface ShootingStar {
 export default function StarField() {
   const [stars, setStars] = useState<Star[]>([]);
   const [shootingStars, setShootingStars] = useState<ShootingStar[]>([]);
-  const [nebulas, setNebulas] = useState<any[]>([]);
+  const [nebulas, setNebulas] = useState<{ id: number; x: number; y: number; color: string; size: number }[]>([]);
   
   useEffect(() => {
     // Generate multiple layers of stars for depth
@@ -36,7 +36,7 @@ export default function StarField() {
         { count: 50, sizeRange: [3, 4], opacityRange: [0.7, 1], durationRange: [1.5, 3] },  // Near stars
       ];
       
-      let allStars: Star[] = [];
+      const allStars: Star[] = [];
       let id = 0;
       
       layers.forEach(layer => {

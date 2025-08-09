@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CountryData } from '@/lib/world-data';
 import { PopulationSimulator, SimulationParams } from '@/lib/population-simulator';
-import { Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart } from 'recharts';
+import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart } from 'recharts';
 import CountUp from 'react-countup';
 
 interface SimulatorModalProps {
@@ -261,7 +261,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
             {!hasStarted ? (
               <div className="h-[300px] flex items-center justify-center">
                 <div className="text-center">
-                  <p className="text-gray-400 text-lg mb-4">Press "Run Simulation" to begin</p>
+                  <p className="text-gray-400 text-lg mb-4">Press &quot;Run Simulation&quot; to begin</p>
                   <p className="text-gray-500 text-sm">Adjust parameters below to see different scenarios</p>
                 </div>
               </div>

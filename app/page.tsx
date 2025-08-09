@@ -21,13 +21,13 @@ const StarField = dynamic(() => import('@/components/StarField'), { ssr: false }
 const CelestialBodies = dynamic(() => import('@/components/CelestialBodies'), { ssr: false });
 
 export default function Home() {
-  const globeEl = useRef<any>(null);
+  const globeEl = useRef<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null);
-  const [hoveredCountry, setHoveredCountry] = useState<CountryData | null>(null);
+  const [hoveredCountry, setHoveredCountry] = useState<CountryData | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMarsModalOpen, setIsMarsModalOpen] = useState(false);
-  const [countries, setCountries] = useState<any>({ features: [] });
-  const [starData, setStarData] = useState<any[]>([]);
+  const [countries, setCountries] = useState<{ features: any[] }>({ features: [] }); // eslint-disable-line @typescript-eslint/no-explicit-any
+  // const [starData, setStarData] = useState<any[]>([]); // Currently unused
   
   // Load world topology
   useEffect(() => {
@@ -58,7 +58,7 @@ export default function Home() {
     })), []
   );
   
-  const handleCountryClick = (point: any) => {
+  const handleCountryClick = (point: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     if (point?.country) {
       setSelectedCountry(point.country);
       // Focus on country
@@ -114,6 +114,7 @@ export default function Home() {
           pointAltitude={0.01}
           pointColor="color"
           pointRadius="size"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           pointLabel={(d: any) => `
             <div class="bg-black/80 backdrop-blur-sm p-2 rounded-lg border border-white/20">
               <div class="text-white font-bold">${d.country.flag} ${d.country.name}</div>
@@ -123,8 +124,8 @@ export default function Home() {
               </div>
             </div>
           `}
-          onPointClick={handleCountryClick}
-          onPointHover={(point: any) => setHoveredCountry(point?.country || null)}
+          onPointClick={handleCountryClick} // eslint-disable-line @typescript-eslint/no-explicit-any
+          onPointHover={(point: any) => setHoveredCountry(point?.country || null)} // eslint-disable-line @typescript-eslint/no-explicit-any
           
           // Atmosphere
           showAtmosphere={true}

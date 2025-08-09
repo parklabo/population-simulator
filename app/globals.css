@@ -138,3 +138,104 @@ input[type="range"]::-moz-range-thumb:hover {
               0 0 0 4px rgba(168, 85, 247, 0.2),
               0 6px 20px rgba(168, 85, 247, 0.4);
 }
+
+/* Mars Simulator Custom Slider Styles */
+.mars-slider {
+  position: relative;
+}
+
+.mars-slider input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+}
+
+.mars-slider input[type="range"]::-webkit-slider-track {
+  background: rgba(0, 0, 0, 0.5);
+  height: 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.mars-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: radial-gradient(circle, #fff, #ddd);
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4),
+              0 0 0 1px rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: -8px;
+}
+
+.mars-slider input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5),
+              0 0 0 3px currentColor,
+              0 0 20px currentColor;
+}
+
+.mars-slider input[type="range"]::-moz-range-track {
+  background: rgba(0, 0, 0, 0.5);
+  height: 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.mars-slider input[type="range"]::-moz-range-thumb {
+  background: radial-gradient(circle, #fff, #ddd);
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4),
+              0 0 0 1px rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.mars-slider input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5),
+              0 0 0 3px currentColor,
+              0 0 20px currentColor;
+}
+
+/* Slider scale marks */
+.slider-scale {
+  position: relative;
+  width: 100%;
+  height: 20px;
+  margin-top: 8px;
+}
+
+.slider-scale-mark {
+  position: absolute;
+  width: 1px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.3);
+  top: 0;
+}
+
+.slider-scale-mark.major {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.slider-scale-label {
+  position: absolute;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.5);
+  transform: translateX(-50%);
+  top: 14px;
+  white-space: nowrap;
+}

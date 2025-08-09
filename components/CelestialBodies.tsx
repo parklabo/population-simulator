@@ -10,13 +10,13 @@ interface CelestialBodiesProps {
 export default function CelestialBodies({ onMarsClick, onMoonClick }: CelestialBodiesProps) {
   return (
     <>
-      {/* Mars - Fixed position, always on top */}
+      {/* Mars - Fixed position */}
       <motion.div
         className="fixed cursor-pointer"
         style={{ 
           right: '50px', 
           bottom: '200px',
-          zIndex: 9999 
+          zIndex: 30 
         }}
         animate={{
           y: [-10, 10, -10],
@@ -79,13 +79,13 @@ export default function CelestialBodies({ onMarsClick, onMoonClick }: CelestialB
         </motion.div>
       </motion.div>
       
-      {/* Moon - Fixed position, always on top */}
+      {/* Moon - Fixed position */}
       <motion.div
         className="fixed cursor-pointer"
         style={{ 
           left: '50px', 
           bottom: '200px',
-          zIndex: 9999 
+          zIndex: 30 
         }}
         animate={{
           x: [-5, 5, -5],
