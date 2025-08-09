@@ -226,12 +226,14 @@ export default function Home() {
                         <div className={`w-1.5 h-1.5 rounded-full ${
                           country.birthRate < 1.0 ? 'bg-red-500 animate-pulse' : 
                           country.birthRate < 1.5 ? 'bg-orange-500' : 
-                          'bg-yellow-500'
+                          country.birthRate < 2.1 ? 'bg-yellow-500' :
+                          'bg-green-500'
                         }`}></div>
                         <span className={`text-xs font-mono font-bold ${
                           country.birthRate < 1.0 ? 'text-red-400' : 
                           country.birthRate < 1.5 ? 'text-orange-400' : 
-                          'text-yellow-400'
+                          country.birthRate < 2.1 ? 'text-yellow-400' :
+                          'text-green-400'
                         }`}>
                           {country.birthRate.toFixed(2)}
                         </span>
@@ -249,7 +251,7 @@ export default function Home() {
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full animate-pulse"></div>
                 <p className="text-[9px] text-gray-400 font-mono tracking-wider">
-                  UN POPULATION DATA 2024
+                  UN POPULATION DATA 2024 | World Insights
                 </p>
               </div>
             </div>

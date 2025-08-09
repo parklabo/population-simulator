@@ -88,9 +88,11 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
   };
   
   const startTimeLapse = () => {
-    setCurrentYear(2025);
-    setIsPlaying(true);
-    setHasStarted(true); // Mark as started
+    if (!isPlaying) {
+      setCurrentYear(2025);
+      setHasStarted(true);
+    }
+    setIsPlaying(!isPlaying);
   };
   
   // Find critical years
@@ -118,97 +120,142 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
         onClick={onClose}
       >
-        {/* Backdrop */}
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+        {/* Enhanced Backdrop with gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-purple-900/20 to-black/90 backdrop-blur-md" />
         
-        {/* Modal */}
+        {/* Modal with glassmorphic design */}
         <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          className="relative bg-gray-900 rounded-3xl p-8 max-w-6xl w-full max-h-[90vh] overflow-y-auto border border-white/10"
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          className="relative bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-2xl rounded-3xl p-6 max-w-7xl w-full max-h-[92vh] overflow-y-auto border border-white/10 shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-                <span className="text-4xl">{country.flag}</span>
-                {country.name} Population Simulator
-              </h2>
-              <p className="text-gray-400 mt-1">Projecting demographic future from 2025 to 2125</p>
+          {/* Compact Header */}
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">{country.flag}</span>
+              <div>
+                <h2 className="text-2xl font-bold text-white">{country.name}</h2>
+                <p className="text-xs text-gray-400">Population Simulator • 2025-2125</p>
+              </div>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors text-2xl"
+              className="w-8 h-8 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center transition-all"
             >
-              ✕
+              <span className="text-gray-400 hover:text-white">✕</span>
             </button>
           </div>
           
-          {/* Time Display */}
-          <div className="text-center mb-8">
-            <motion.div
-              key={currentYear}
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="inline-block"
-            >
-              <p className="text-6xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-                {currentYear}
-              </p>
-            </motion.div>
-            <div className="mt-4 flex items-center justify-center gap-4">
-              <button
-                onClick={startTimeLapse}
-                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all"
-              >
-                ▶ Run Simulation
-              </button>
-              <button
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                {isPlaying ? '⏸ Pause' : '▶ Resume'}
-              </button>
-              <button
-                onClick={() => {
-                  setCurrentYear(2025);
-                  setIsPlaying(false);
-                }}
-                className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                ↺ Reset
-              </button>
-            </div>
-            
-            {/* Year Selector */}
-            <div className="mt-6 px-8">
-              <input
-                type="range"
-                min="2025"
-                max="2125"
-                step="1"
-                value={currentYear}
-                onChange={(e) => {
-                  setCurrentYear(Number(e.target.value));
-                  setHasStarted(true);
-                }}
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-gray-400 mt-1">
-                <span>2025</span>
-                <span>2050</span>
-                <span>2075</span>
-                <span>2100</span>
-                <span>2125</span>
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-12 gap-6">
+            {/* Left Panel - Controls */}
+            <div className="col-span-3">
+              <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-4 border border-white/5">
+                {/* Year Display */}
+                <div className="text-center mb-6">
+                  <p className="text-xs text-gray-500 mb-2">CURRENT YEAR</p>
+                  <motion.div
+                    key={currentYear}
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                  >
+                    <p className="text-5xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+                      {currentYear}
+                    </p>
+                  </motion.div>
+                  <div className="mt-2 h-1 bg-gray-700 rounded-full">
+                    <div 
+                      className="h-full bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full transition-all duration-300"
+                      style={{ width: `${(currentYear - 2025) / 100 * 100}%` }}
+                    />
+                  </div>
+                </div>
+                
+                {/* Control Buttons */}
+                <div className="space-y-3">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={startTimeLapse}
+                    className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-purple-500/25 transition-all"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <span>{isPlaying ? '⏸' : '▶'}</span>
+                      {isPlaying ? 'Pause' : 'Run Simulation'}
+                    </span>
+                  </motion.button>
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setCurrentYear(2025);
+                      setIsPlaying(false);
+                      setHasStarted(false);
+                    }}
+                    className="w-full px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-xl hover:bg-white/20 transition-all border border-white/10"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <span>↺</span>
+                      Reset
+                    </span>
+                  </motion.button>
+                </div>
+                
+                {/* Year Slider - Show after simulation starts */}
+                {hasStarted && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6"
+                  >
+                    <p className="text-xs text-gray-500 mb-3">TIMELINE</p>
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full h-2 bg-gray-700 rounded-full"></div>
+                        <div 
+                          className="absolute h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-300"
+                          style={{ width: `${(currentYear - 2025) / 100 * 100}%` }}
+                        ></div>
+                      </div>
+                      <input
+                        type="range"
+                        min="2025"
+                        max="2125"
+                        step="1"
+                        value={currentYear}
+                        onChange={(e) => {
+                          setCurrentYear(Number(e.target.value));
+                          setIsPlaying(false);
+                        }}
+                        className="relative w-full h-2 appearance-none bg-transparent cursor-pointer z-10"
+                      />
+                    </div>
+                    <div className="flex justify-between text-[10px] text-gray-600 mt-2">
+                      <span>2025</span>
+                      <span>2075</span>
+                      <span>2125</span>
+                    </div>
+                  </motion.div>
+                )}
               </div>
             </div>
-          </div>
-          
-          {/* Main Chart */}
-          <div className="bg-black/50 rounded-2xl p-6 mb-6">
-            <h3 className="text-xl font-semibold text-white mb-4">Population Projection</h3>
+            
+            {/* Center Panel - Visualization */}
+            <div className="col-span-6">
+              {/* Main Chart */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 to-pink-600/5 rounded-3xl blur-xl" />
+                <div className="relative bg-black/40 backdrop-blur-sm rounded-3xl p-6 border border-white/5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-semibold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">Population Projection</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-purple-500 rounded-full" />
+                      <span className="text-xs text-gray-400">Total Population</span>
+                    </div>
+                  </div>
             {!hasStarted ? (
               <div className="h-[300px] flex items-center justify-center">
                 <div className="text-center">
@@ -245,11 +292,16 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
             </ResponsiveContainer>
             )}
             
-            {/* Current Stats - Only show when simulation has started */}
+            {/* Enhanced Current Stats */}
             {hasStarted && (
-              <div className="grid grid-cols-4 gap-4 mt-6">
-                <div className="bg-gray-800 rounded-lg p-3">
-                  <p className="text-gray-400 text-xs mb-1">Current Population</p>
+              <div className="grid grid-cols-4 gap-3 mt-6">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-xl p-3 border border-white/5"
+                >
+                  <p className="text-gray-400 text-xs mb-1">Population</p>
                   <p className="text-xl font-bold text-white">
                     <CountUp
                       end={currentData.totalPopulation}
@@ -258,133 +310,212 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                       suffix="M"
                     />
                   </p>
-                </div>
-                <div className="bg-gray-800 rounded-lg p-3">
+                </motion.div>
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-gradient-to-br from-green-900/20 to-green-800/20 backdrop-blur-sm rounded-xl p-3 border border-green-500/20"
+                >
                   <p className="text-gray-400 text-xs mb-1">Youth (0-14)</p>
                   <p className="text-xl font-bold text-green-400">
                     {((currentData.youth / currentData.totalPopulation) * 100).toFixed(1)}%
                   </p>
-                </div>
-                <div className="bg-gray-800 rounded-lg p-3">
+                </motion.div>
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-gradient-to-br from-blue-900/20 to-blue-800/20 backdrop-blur-sm rounded-xl p-3 border border-blue-500/20"
+                >
                   <p className="text-gray-400 text-xs mb-1">Working (15-64)</p>
                   <p className="text-xl font-bold text-blue-400">
                     {((currentData.workingAge / currentData.totalPopulation) * 100).toFixed(1)}%
                   </p>
-                </div>
-                <div className="bg-gray-800 rounded-lg p-3">
+                </motion.div>
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="bg-gradient-to-br from-orange-900/20 to-orange-800/20 backdrop-blur-sm rounded-xl p-3 border border-orange-500/20"
+                >
                   <p className="text-gray-400 text-xs mb-1">Elderly (65+)</p>
                   <p className="text-xl font-bold text-orange-400">
                     {((currentData.elderly / currentData.totalPopulation) * 100).toFixed(1)}%
                   </p>
-                </div>
+                </motion.div>
               </div>
             )}
-          </div>
-          
-          {/* Controls */}
-          <div className="bg-gray-800/50 rounded-2xl p-6 mb-6">
-            <h3 className="text-xl font-semibold text-white mb-4">Simulation Parameters</h3>
-            <div className="grid grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Birth Rate (per woman)</label>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="3.0"
-                  step="0.01"
-                  value={params.birthRate}
-                  onChange={(e) => handleParamChange('birthRate', parseFloat(e.target.value))}
-                  className="w-full mb-2"
-                />
-                <div className="text-center text-2xl font-bold text-purple-400">
-                  {params.birthRate.toFixed(2)}
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Life Expectancy (years)</label>
-                <input
-                  type="range"
-                  min="60"
-                  max="95"
-                  step="1"
-                  value={params.lifeExpectancy}
-                  onChange={(e) => handleParamChange('lifeExpectancy', parseFloat(e.target.value))}
-                  className="w-full mb-2"
-                />
-                <div className="text-center text-2xl font-bold text-blue-400">
-                  {params.lifeExpectancy}
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Net Immigration (K/year)</label>
-                <input
-                  type="range"
-                  min="-100"
-                  max="500"
-                  step="10"
-                  value={params.immigrationRate}
-                  onChange={(e) => handleParamChange('immigrationRate', parseFloat(e.target.value))}
-                  className="w-full mb-2"
-                />
-                <div className="text-center text-2xl font-bold text-green-400">
-                  {params.immigrationRate >= 0 ? '+' : ''}{params.immigrationRate}
-                </div>
               </div>
             </div>
-          </div>
-          
-          {/* Results - Only show after simulation completes */}
-          {simulationComplete && (
-            <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 rounded-2xl p-6 border border-purple-500/30">
-              <h3 className="text-xl font-semibold text-white mb-4">Projection Results</h3>
-              <div className="grid grid-cols-3 gap-6">
-                <div>
-                  <p className="text-gray-400 text-sm mb-1">Population in 2125</p>
-                  <p className="text-3xl font-bold text-white">
-                    {populationIn2125.toFixed(1)}M
-                  </p>
-                  <p className={`text-sm mt-1 ${Number(populationChange) < 0 ? 'text-red-400' : 'text-green-400'}`}>
-                    {Number(populationChange) > 0 ? '+' : ''}{populationChange}% from 2025
-                  </p>
-                </div>
-                
-                <div>
-                  <p className="text-gray-400 text-sm mb-1">Decline Starts</p>
-                  <p className="text-3xl font-bold text-orange-400">
-                    {declineStartYear || 'Never'}
-                  </p>
-                  {declineStartYear && (
-                    <p className="text-sm text-gray-400 mt-1">
-                      In {declineStartYear - 2025} years
-                    </p>
+            </div>
+            
+            {/* Right Panel - Results */}
+            <div className="col-span-3">
+              {/* Results Section - Show after simulation completes */}
+              {simulationComplete ? (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="bg-black/30 backdrop-blur-sm rounded-2xl p-4 border border-white/5"
+                >
+                  <h3 className="text-sm font-semibold text-gray-400 mb-4">PROJECTION RESULTS</h3>
+                  
+                  <div className="space-y-3">
+                    <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/30 rounded-xl p-3 border border-purple-500/20">
+                      <p className="text-[10px] text-purple-400 uppercase tracking-wider mb-1">2125 Population</p>
+                      <p className="text-2xl font-bold text-white">
+                        {populationIn2125.toFixed(1)}M
+                      </p>
+                      <p className={`text-xs mt-1 ${Number(populationChange) < 0 ? 'text-red-400' : 'text-green-400'}`}>
+                        {Number(populationChange) > 0 ? '↑' : '↓'} {Math.abs(Number(populationChange))}%
+                      </p>
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-orange-900/30 to-orange-800/30 rounded-xl p-3 border border-orange-500/20">
+                      <p className="text-[10px] text-orange-400 uppercase tracking-wider mb-1">Decline Starts</p>
+                      <p className="text-2xl font-bold text-orange-400">
+                        {declineStartYear || 'Never'}
+                      </p>
+                      {declineStartYear && (
+                        <p className="text-xs text-orange-400/70 mt-1">
+                          In {declineStartYear - 2025} years
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-red-900/30 to-red-800/30 rounded-xl p-3 border border-red-500/20">
+                      <p className="text-[10px] text-red-400 uppercase tracking-wider mb-1">50% Reduction</p>
+                      <p className="text-2xl font-bold text-red-400">
+                        {projection.halfPoint || 'Never'}
+                      </p>
+                      {projection.halfPoint && (
+                        <p className="text-xs text-red-400/70 mt-1">
+                          In {projection.halfPoint - 2025} years
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {params.birthRate < 2.1 && (
+                    <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
+                      <p className="text-xs text-red-400 leading-relaxed">
+                        ⚠️ Critical: Birth rate {params.birthRate.toFixed(2)} is below replacement level
+                      </p>
+                    </div>
                   )}
-                </div>
-                
-                <div>
-                  <p className="text-gray-400 text-sm mb-1">Population Halves</p>
-                  <p className="text-3xl font-bold text-red-400">
-                    {projection.halfPoint || 'Never'}
-                  </p>
-                  {projection.halfPoint && (
-                    <p className="text-sm text-gray-400 mt-1">
-                      In {projection.halfPoint - 2025} years
-                    </p>
-                  )}
-                </div>
-              </div>
-              
-              {params.birthRate < 2.1 && (
-                <div className="mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
-                  <p className="text-red-400 text-sm">
-                    ⚠️ With a birth rate of {params.birthRate.toFixed(2)}, {country.name}'s population will face significant challenges. 
-                    Consider policies to increase birth rates or immigration to maintain population stability.
-                  </p>
+                </motion.div>
+              ) : (
+                <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-4 border border-white/5">
+                  <h3 className="text-sm font-semibold text-gray-400 mb-4">PROJECTION RESULTS</h3>
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 text-sm">Run simulation to see results</p>
+                  </div>
                 </div>
               )}
             </div>
-          )}
+          </div>
+          
+          {/* Parameters Section - Below the grid */}
+          <div className="relative mt-6">
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/5 to-purple-600/5 rounded-3xl blur-xl" />
+            <div className="relative bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm rounded-3xl p-6 border border-white/5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">⚙️</span>
+                </div>
+                <h3 className="text-xl font-semibold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">Simulation Parameters</h3>
+              </div>
+            <div className="grid grid-cols-3 gap-6">
+              <div className="group">
+                <label className="block text-sm text-gray-400 mb-3 group-hover:text-purple-400 transition-colors">Birth Rate</label>
+                <div className="relative mb-4">
+                  {/* Track Background */}
+                  <div className="absolute top-1/2 -translate-y-1/2 w-full h-2 bg-gray-700 rounded-full shadow-inner">
+                    <div 
+                      className="absolute h-full bg-gradient-to-r from-purple-600 to-purple-400 rounded-full transition-all duration-200"
+                      style={{ width: `${((params.birthRate - 0.5) / 2.5) * 100}%` }}
+                    />
+                  </div>
+                  {/* Range Input */}
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="3.0"
+                    step="0.01"
+                    value={params.birthRate}
+                    onChange={(e) => handleParamChange('birthRate', parseFloat(e.target.value))}
+                    className="relative w-full h-2 appearance-none bg-transparent cursor-pointer z-10"
+                  />
+                </div>
+                <div className="bg-purple-500/10 rounded-lg p-2 border border-purple-500/20">
+                  <p className="text-center text-2xl font-bold text-purple-400">
+                    {params.birthRate.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="group">
+                <label className="block text-sm text-gray-400 mb-3 group-hover:text-blue-400 transition-colors">Life Expectancy Age</label>
+                <div className="relative mb-4">
+                  {/* Track Background */}
+                  <div className="absolute top-1/2 -translate-y-1/2 w-full h-2 bg-gray-700 rounded-full shadow-inner">
+                    <div 
+                      className="absolute h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all duration-200"
+                      style={{ width: `${((params.lifeExpectancy - 60) / 35) * 100}%` }}
+                    />
+                  </div>
+                  {/* Range Input */}
+                  <input
+                    type="range"
+                    min="60"
+                    max="95"
+                    step="1"
+                    value={params.lifeExpectancy}
+                    onChange={(e) => handleParamChange('lifeExpectancy', parseFloat(e.target.value))}
+                    className="relative w-full h-2 appearance-none bg-transparent cursor-pointer z-10"
+                  />
+                </div>
+                <div className="bg-blue-500/10 rounded-lg p-2 border border-blue-500/20">
+                  <p className="text-center text-2xl font-bold text-blue-400">
+                    {params.lifeExpectancy}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="group">
+                <label className="block text-sm text-gray-400 mb-3 group-hover:text-green-400 transition-colors">Net Immigration</label>
+                <div className="relative mb-4">
+                  {/* Track Background */}
+                  <div className="absolute top-1/2 -translate-y-1/2 w-full h-2 bg-gray-700 rounded-full shadow-inner">
+                    <div 
+                      className="absolute h-full bg-gradient-to-r from-green-600 to-green-400 rounded-full transition-all duration-200"
+                      style={{ 
+                        width: `${((params.immigrationRate + 100) / 600) * 100}%`,
+                        background: params.immigrationRate < 0 ? 'linear-gradient(to right, #ef4444, #f87171)' : undefined
+                      }}
+                    />
+                  </div>
+                  {/* Range Input */}
+                  <input
+                    type="range"
+                    min="-100"
+                    max="500"
+                    step="10"
+                    value={params.immigrationRate}
+                    onChange={(e) => handleParamChange('immigrationRate', parseFloat(e.target.value))}
+                    className="relative w-full h-2 appearance-none bg-transparent cursor-pointer z-10"
+                  />
+                </div>
+                <div className="bg-green-500/10 rounded-lg p-2 border border-green-500/20">
+                  <p className="text-center text-2xl font-bold text-green-400">
+                    {params.immigrationRate >= 0 ? '+' : ''}{params.immigrationRate}K
+                  </p>
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>
           
           {/* Data Source */}
           <div className="mt-6 pt-4 border-t border-gray-700">
