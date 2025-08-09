@@ -274,7 +274,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                   className="w-full mb-2"
                 />
                 <div className="text-center text-2xl font-bold text-purple-400">
-                  {params.birthRate.toFixed(1)}
+                  {params.birthRate.toFixed(2)}
                 </div>
               </div>
               
@@ -355,7 +355,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
               {params.birthRate < 2.1 && (
                 <div className="mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
                   <p className="text-red-400 text-sm">
-                    ⚠️ With a birth rate of {params.birthRate.toFixed(1)}, {country.name}'s population will face significant challenges. 
+                    ⚠️ With a birth rate of {params.birthRate.toFixed(2)}, {country.name}'s population will face significant challenges. 
                     Consider policies to increase birth rates or immigration to maintain population stability.
                   </p>
                 </div>
