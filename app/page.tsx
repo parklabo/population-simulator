@@ -162,11 +162,10 @@ export default function Home() {
           
           {/* Country Rankings */}
           <div className="border-t border-white/10 pt-4">
-            <h4 className="text-white font-semibold mb-3">Lowest Birth Rates</h4>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <h4 className="text-white font-semibold mb-3">Birth Rate Rankings</h4>
+            <div className="space-y-1 max-h-96 overflow-y-auto pr-1">
               {worldCountries
                 .sort((a, b) => a.birthRate - b.birthRate)
-                .slice(0, 10)
                 .map((country, index) => (
                   <button
                     key={country.id}
@@ -180,17 +179,18 @@ export default function Home() {
                         }, 1000);
                       }
                     }}
-                    className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white/10 transition-colors text-left"
+                    className="w-full flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/10 transition-colors text-left"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-400 text-xs w-5">{index + 1}.</span>
-                      <span className="text-lg">{country.flag}</span>
-                      <span className="text-white text-sm">{country.name}</span>
-                    </div>
-                    <span className={`text-sm font-bold ${
+                    <span className="text-gray-500 text-xs w-6 text-right">{index + 1}</span>
+                    <span className="text-base">{country.flag}</span>
+                    <span className="text-white text-xs flex-1 truncate" title={country.name}>
+                      {country.name.length > 12 ? country.name.substring(0, 12) + '...' : country.name}
+                    </span>
+                    <span className={`text-xs font-bold ${
                       country.birthRate < 1.0 ? 'text-red-400' : 
                       country.birthRate < 1.5 ? 'text-orange-400' : 
-                      'text-yellow-400'
+                      country.birthRate < 2.1 ? 'text-yellow-400' :
+                      'text-green-400'
                     }`}>
                       {country.birthRate}
                     </span>
