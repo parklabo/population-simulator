@@ -20,6 +20,7 @@ const Globe = dynamic(() => import('react-globe.gl'), {
 
 const StarField = dynamic(() => import('@/components/StarField'), { ssr: false });
 const CelestialBodies = dynamic(() => import('@/components/CelestialBodies'), { ssr: false });
+const Footer = dynamic(() => import('@/components/Footer'), { ssr: false });
 
 export default function Home() {
   const globeEl = useRef<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -362,6 +363,9 @@ export default function Home() {
       
       {/* Celestial Bodies - Always on top */}
       <CelestialBodies onMarsClick={handleMarsClick} onMoonClick={handleMoonClick} />
+      
+      {/* Footer with Creator Info */}
+      <Footer />
       
       {/* Mars Colony Modal */}
       <MarsColonyModal 

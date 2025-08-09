@@ -644,6 +644,23 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
                   </div>
                 </motion.div>
                 
+                {/* Creator Badge */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="flex justify-center mt-3 mb-3"
+                >
+                  <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1 border border-purple-500/20">
+                    <div className="relative">
+                      <span className="text-lg">🐱</span>
+                      <span className="absolute -bottom-1 -right-1 bg-gradient-to-r from-cyan-500 to-purple-500 text-[6px] font-bold text-white px-0.5 rounded">AI</span>
+                    </div>
+                    <span className="text-xs text-gray-400">by</span>
+                    <span className="text-xs font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">YonYonWare</span>
+                  </div>
+                </motion.div>
+                
                 {/* Story/Mission Briefing - Compact */}
                 <motion.div
                   initial={{ opacity: 0 }}

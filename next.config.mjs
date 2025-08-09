@@ -5,6 +5,12 @@ const nextConfig = {
   images: {
     domains: [],
     unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
   },
   eslint: {
     ignoreDuringBuilds: true,
