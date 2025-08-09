@@ -16,6 +16,7 @@ interface SimulatorModalProps {
 export default function SimulatorModal({ isOpen, onClose, country }: SimulatorModalProps) {
   const [currentYear, setCurrentYear] = useState(2025);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false); // Track if simulation has started
   const [animationSpeed, setAnimationSpeed] = useState(100); // ms per year
   
   const [params, setParams] = useState<SimulationParams>({
@@ -25,6 +26,20 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
     immigrationRate: 0,
     startYear: 2025
   });
+  
+  // Reset parameters when country changes
+  useEffect(() => {
+    setParams({
+      currentPopulation: country.population,
+      birthRate: country.birthRate,
+      lifeExpectancy: country.lifeExpectancy,
+      immigrationRate: 0,
+      startYear: 2025
+    });
+    setCurrentYear(2025);
+    setIsPlaying(false);
+    setHasStarted(false);
+  }, [country]);
   
   const simulator = useMemo(() => new PopulationSimulator(), []);
   const projection = useMemo(() => simulator.simulate(params, 75), [params, simulator]);
@@ -46,8 +61,9 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
     return () => clearInterval(interval);
   }, [isPlaying, animationSpeed]);
   
-  // Chart data up to current year
+  // Chart data up to current year (only when simulation has started)
   const chartData = useMemo(() => {
+    if (!hasStarted) return [];
     const yearIndex = Math.floor((currentYear - 2025) / 5);
     return projection.data.slice(0, yearIndex + 1).map(d => ({
       year: d.year,
@@ -56,7 +72,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
       working: parseFloat(d.workingAge.toFixed(2)),
       elderly: parseFloat(d.elderly.toFixed(2))
     }));
-  }, [projection.data, currentYear]);
+  }, [projection.data, currentYear, hasStarted]);
   
   const currentData = useMemo(() => {
     const yearIndex = Math.floor((currentYear - 2025) / 5);
@@ -67,11 +83,13 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
     setParams(prev => ({ ...prev, [key]: value }));
     setCurrentYear(2025); // Reset animation
     setIsPlaying(false);
+    setHasStarted(false); // Reset started status when params change
   };
   
   const startTimeLapse = () => {
     setCurrentYear(2025);
     setIsPlaying(true);
+    setHasStarted(true); // Mark as started
   };
   
   // Find critical years
@@ -168,8 +186,16 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
           {/* Main Chart */}
           <div className="bg-black/50 rounded-2xl p-6 mb-6">
             <h3 className="text-xl font-semibold text-white mb-4">Population Projection</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={chartData}>
+            {!hasStarted ? (
+              <div className="h-[300px] flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-gray-400 text-lg mb-4">Press "Start Time-Lapse" to begin simulation</p>
+                  <p className="text-gray-500 text-sm">Adjust parameters below to see different scenarios</p>
+                </div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="populationGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.8}/>
@@ -194,39 +220,42 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                 />
               </AreaChart>
             </ResponsiveContainer>
+            )}
             
-            {/* Current Stats */}
-            <div className="grid grid-cols-4 gap-4 mt-6">
-              <div className="bg-gray-800 rounded-lg p-3">
-                <p className="text-gray-400 text-xs mb-1">Current Population</p>
-                <p className="text-xl font-bold text-white">
-                  <CountUp
-                    end={currentData.totalPopulation}
-                    decimals={1}
-                    duration={0.5}
-                    suffix="M"
-                  />
-                </p>
+            {/* Current Stats - Only show when simulation has started */}
+            {hasStarted && (
+              <div className="grid grid-cols-4 gap-4 mt-6">
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <p className="text-gray-400 text-xs mb-1">Current Population</p>
+                  <p className="text-xl font-bold text-white">
+                    <CountUp
+                      end={currentData.totalPopulation}
+                      decimals={1}
+                      duration={0.5}
+                      suffix="M"
+                    />
+                  </p>
+                </div>
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <p className="text-gray-400 text-xs mb-1">Youth (0-14)</p>
+                  <p className="text-xl font-bold text-green-400">
+                    {((currentData.youth / currentData.totalPopulation) * 100).toFixed(1)}%
+                  </p>
+                </div>
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <p className="text-gray-400 text-xs mb-1">Working (15-64)</p>
+                  <p className="text-xl font-bold text-blue-400">
+                    {((currentData.workingAge / currentData.totalPopulation) * 100).toFixed(1)}%
+                  </p>
+                </div>
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <p className="text-gray-400 text-xs mb-1">Elderly (65+)</p>
+                  <p className="text-xl font-bold text-orange-400">
+                    {((currentData.elderly / currentData.totalPopulation) * 100).toFixed(1)}%
+                  </p>
+                </div>
               </div>
-              <div className="bg-gray-800 rounded-lg p-3">
-                <p className="text-gray-400 text-xs mb-1">Youth (0-14)</p>
-                <p className="text-xl font-bold text-green-400">
-                  {((currentData.youth / currentData.totalPopulation) * 100).toFixed(1)}%
-                </p>
-              </div>
-              <div className="bg-gray-800 rounded-lg p-3">
-                <p className="text-gray-400 text-xs mb-1">Working (15-64)</p>
-                <p className="text-xl font-bold text-blue-400">
-                  {((currentData.workingAge / currentData.totalPopulation) * 100).toFixed(1)}%
-                </p>
-              </div>
-              <div className="bg-gray-800 rounded-lg p-3">
-                <p className="text-gray-400 text-xs mb-1">Elderly (65+)</p>
-                <p className="text-xl font-bold text-orange-400">
-                  {((currentData.elderly / currentData.totalPopulation) * 100).toFixed(1)}%
-                </p>
-              </div>
-            </div>
+            )}
           </div>
           
           {/* Controls */}
@@ -283,54 +312,56 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
             </div>
           </div>
           
-          {/* Results */}
-          <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 rounded-2xl p-6 border border-purple-500/30">
-            <h3 className="text-xl font-semibold text-white mb-4">Projection Results</h3>
-            <div className="grid grid-cols-3 gap-6">
-              <div>
-                <p className="text-gray-400 text-sm mb-1">Population in 2100</p>
-                <p className="text-3xl font-bold text-white">
-                  {populationIn2100.toFixed(1)}M
-                </p>
-                <p className={`text-sm mt-1 ${Number(populationChange) < 0 ? 'text-red-400' : 'text-green-400'}`}>
-                  {Number(populationChange) > 0 ? '+' : ''}{populationChange}% from 2025
-                </p>
+          {/* Results - Only show after simulation starts */}
+          {hasStarted && (
+            <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 rounded-2xl p-6 border border-purple-500/30">
+              <h3 className="text-xl font-semibold text-white mb-4">Projection Results</h3>
+              <div className="grid grid-cols-3 gap-6">
+                <div>
+                  <p className="text-gray-400 text-sm mb-1">Population in 2100</p>
+                  <p className="text-3xl font-bold text-white">
+                    {populationIn2100.toFixed(1)}M
+                  </p>
+                  <p className={`text-sm mt-1 ${Number(populationChange) < 0 ? 'text-red-400' : 'text-green-400'}`}>
+                    {Number(populationChange) > 0 ? '+' : ''}{populationChange}% from 2025
+                  </p>
+                </div>
+                
+                <div>
+                  <p className="text-gray-400 text-sm mb-1">Decline Starts</p>
+                  <p className="text-3xl font-bold text-orange-400">
+                    {declineStartYear || 'Never'}
+                  </p>
+                  {declineStartYear && (
+                    <p className="text-sm text-gray-400 mt-1">
+                      In {declineStartYear - 2025} years
+                    </p>
+                  )}
+                </div>
+                
+                <div>
+                  <p className="text-gray-400 text-sm mb-1">Population Halves</p>
+                  <p className="text-3xl font-bold text-red-400">
+                    {projection.halfPoint || 'Never'}
+                  </p>
+                  {projection.halfPoint && (
+                    <p className="text-sm text-gray-400 mt-1">
+                      In {projection.halfPoint - 2025} years
+                    </p>
+                  )}
+                </div>
               </div>
               
-              <div>
-                <p className="text-gray-400 text-sm mb-1">Decline Starts</p>
-                <p className="text-3xl font-bold text-orange-400">
-                  {declineStartYear || 'Never'}
-                </p>
-                {declineStartYear && (
-                  <p className="text-sm text-gray-400 mt-1">
-                    In {declineStartYear - 2025} years
+              {params.birthRate < 2.1 && (
+                <div className="mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
+                  <p className="text-red-400 text-sm">
+                    ⚠️ With a birth rate of {params.birthRate.toFixed(1)}, {country.name}'s population will face significant challenges. 
+                    Consider policies to increase birth rates or immigration to maintain population stability.
                   </p>
-                )}
-              </div>
-              
-              <div>
-                <p className="text-gray-400 text-sm mb-1">Population Halves</p>
-                <p className="text-3xl font-bold text-red-400">
-                  {projection.halfPoint || 'Never'}
-                </p>
-                {projection.halfPoint && (
-                  <p className="text-sm text-gray-400 mt-1">
-                    In {projection.halfPoint - 2025} years
-                  </p>
-                )}
-              </div>
+                </div>
+              )}
             </div>
-            
-            {params.birthRate < 2.1 && (
-              <div className="mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
-                <p className="text-red-400 text-sm">
-                  ⚠️ With a birth rate of {params.birthRate.toFixed(1)}, {country.name}'s population will face significant challenges. 
-                  Consider policies to increase birth rates or immigration to maintain population stability.
-                </p>
-              </div>
-            )}
-          </div>
+          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>
