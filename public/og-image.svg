@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#818cf8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c084fc;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- Pattern overlay -->
+  <rect width="1200" height="630" opacity="0.1" fill="white" style="mix-blend-mode: overlay"/>
+  
+  <!-- Main content -->
+  <g transform="translate(600, 315)">
+    <!-- Earth emoji -->
+    <text x="-320" y="-50" font-family="Arial, sans-serif" font-size="80" text-anchor="middle">🌍</text>
+    
+    <!-- Title -->
+    <text x="50" y="-50" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="900" fill="white" text-anchor="middle">
+      Population Simulator
+    </text>
+    
+    <!-- Subtitle -->
+    <text x="0" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="white" opacity="0.9" text-anchor="middle">
+      Visualize demographic futures with real-time birth rate simulations
+    </text>
+    
+    <!-- Icons row -->
+    <text x="-120" y="90" font-family="Arial, sans-serif" font-size="48" text-anchor="middle">📊</text>
+    <text x="-60" y="90" font-family="Arial, sans-serif" font-size="48" text-anchor="middle">👥</text>
+    <text x="0" y="90" font-family="Arial, sans-serif" font-size="48" text-anchor="middle">🚀</text>
+    <text x="60" y="90" font-family="Arial, sans-serif" font-size="48" text-anchor="middle">🌙</text>
+    <text x="120" y="90" font-family="Arial, sans-serif" font-size="48" text-anchor="middle">🔮</text>
+  </g>
+  
+  <!-- Creator text -->
+  <text x="600" y="560" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="white" opacity="0.8" text-anchor="middle" font-weight="600">
+    Created by YonYonWare
+  </text>
+  
+  <!-- YonYonWare badge -->
+  <g transform="translate(50, 50)">
+    <rect x="0" y="0" width="160" height="40" rx="20" fill="white" opacity="0.15"/>
+    <text x="80" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="white" text-anchor="middle" font-weight="bold">
+      YonYonWare
+    </text>
+  </g>
+</svg>

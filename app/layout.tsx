@@ -19,6 +19,14 @@ export const metadata: Metadata = {
     description: 'Visualize demographic futures with real-time birth rate simulations',
     url: 'https://population-simulator.park-labs.com',
     siteName: 'Population Simulator',
+    images: [
+      {
+        url: 'https://population-simulator.park-labs.com/og-image.svg',
+        width: 1200,
+        height: 630,
+        alt: 'Population Simulator - Visualize demographic futures',
+      }
+    ],
     locale: 'en_US',
     type: 'website',
   },
@@ -27,6 +35,7 @@ export const metadata: Metadata = {
     title: 'Population Simulator | YonYonWare',
     description: 'Visualize demographic futures with real-time birth rate simulations',
     creator: '@YoungsuPark6',
+    images: ['https://population-simulator.park-labs.com/og-image.svg'],
   },
   icons: {
     icon: [
