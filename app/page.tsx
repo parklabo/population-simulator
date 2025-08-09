@@ -33,6 +33,7 @@ export default function Home() {
   const [countries, setCountries] = useState<{ features: any[] }>({ features: [] }); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [currentView, setCurrentView] = useState<'earth' | 'moon' | 'mars' | 'simulate'>('earth');
   const [showMobileCountryList, setShowMobileCountryList] = useState(false);
+  const [showDesktopMessage, setShowDesktopMessage] = useState(false);
   // const [starData, setStarData] = useState<any[]>([]); // Currently unused
   
   // Load world topology
@@ -448,6 +449,39 @@ export default function Home() {
         )}
       </AnimatePresence>
 
+      {/* Desktop Requirement Message */}
+      <AnimatePresence>
+        {showDesktopMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed inset-x-4 bottom-24 z-[180] md:hidden"
+          >
+            <div className="bg-gradient-to-br from-gray-900 via-blue-950/50 to-gray-900 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-4 shadow-2xl">
+              <div className="flex items-start gap-3">
+                <div className="text-3xl flex-shrink-0">🌙</div>
+                <div className="flex-1">
+                  <h3 className="text-white font-bold text-base mb-1">Moon Defense - BETA</h3>
+                  <p className="text-gray-300 text-sm mb-2">
+                    This game requires a desktop computer for optimal gameplay experience.
+                  </p>
+                  <p className="text-cyan-400 text-xs font-medium">
+                    💻 Please visit on a desktop browser to play!
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowDesktopMessage(false)}
+                  className="text-gray-400 hover:text-white p-1"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Mobile Navigation */}
       <MobileNav 
         onEarthClick={() => {
@@ -462,9 +496,10 @@ export default function Home() {
           setCurrentView('simulate');
         }}
         onMoonClick={() => {
-          setShowMobileCountryList(false);
-          setIsMoonRTSOpen(true);
-          setCurrentView('moon');
+          // Show desktop requirement message on mobile
+          setShowDesktopMessage(true);
+          setTimeout(() => setShowDesktopMessage(false), 5000);
+          setCurrentView('earth');
         }}
         onMarsClick={() => {
           setShowMobileCountryList(false);
