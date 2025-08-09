@@ -292,59 +292,173 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
             </ResponsiveContainer>
             )}
             
-            {/* Enhanced Current Stats */}
+            {/* Enhanced Current Stats with Visual Population */}
             {hasStarted && (
-              <div className="grid grid-cols-4 gap-3 mt-6">
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-xl p-3 border border-white/5"
-                >
-                  <p className="text-gray-400 text-xs mb-1">Population</p>
-                  <p className="text-xl font-bold text-white">
-                    <CountUp
-                      end={currentData.totalPopulation}
-                      decimals={1}
-                      duration={0.5}
-                      suffix="M"
-                    />
-                  </p>
-                </motion.div>
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-gradient-to-br from-green-900/20 to-green-800/20 backdrop-blur-sm rounded-xl p-3 border border-green-500/20"
-                >
-                  <p className="text-gray-400 text-xs mb-1">Youth (0-14)</p>
-                  <p className="text-xl font-bold text-green-400">
-                    {((currentData.youth / currentData.totalPopulation) * 100).toFixed(1)}%
-                  </p>
-                </motion.div>
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="bg-gradient-to-br from-blue-900/20 to-blue-800/20 backdrop-blur-sm rounded-xl p-3 border border-blue-500/20"
-                >
-                  <p className="text-gray-400 text-xs mb-1">Working (15-64)</p>
-                  <p className="text-xl font-bold text-blue-400">
-                    {((currentData.workingAge / currentData.totalPopulation) * 100).toFixed(1)}%
-                  </p>
-                </motion.div>
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="bg-gradient-to-br from-orange-900/20 to-orange-800/20 backdrop-blur-sm rounded-xl p-3 border border-orange-500/20"
-                >
-                  <p className="text-gray-400 text-xs mb-1">Elderly (65+)</p>
-                  <p className="text-xl font-bold text-orange-400">
-                    {((currentData.elderly / currentData.totalPopulation) * 100).toFixed(1)}%
-                  </p>
-                </motion.div>
-              </div>
+              <>
+                {/* Visual Population Display */}
+                <div className="mt-6 p-4 bg-gradient-to-br from-gray-900/50 to-gray-800/50 rounded-2xl border border-white/5">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-semibold text-gray-400">POPULATION DYNAMICS</h4>
+                    <p className="text-xs text-gray-500">
+                      Total: <span className="text-white font-bold">{currentData.totalPopulation.toFixed(1)}M</span>
+                    </p>
+                  </div>
+                  
+                  {/* Animated Population Icons */}
+                  <div className="relative h-24">
+                    <div className="absolute inset-0 flex items-center justify-center gap-1">
+                      {/* Youth Icons */}
+                      <motion.div 
+                        className="flex flex-wrap justify-center items-center"
+                        animate={{ 
+                          scale: [1, 1.05, 1],
+                          transition: { duration: 2, repeat: Infinity }
+                        }}
+                      >
+                        {Array.from({ length: Math.max(1, Math.min(15, Math.round((currentData.youth / currentData.totalPopulation) * 30))) }).map((_, i) => (
+                          <motion.span
+                            key={`youth-${i}`}
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.02 }}
+                            className="text-2xl"
+                            style={{ 
+                              filter: 'hue-rotate(0deg)',
+                              display: 'inline-block',
+                              margin: '1px'
+                            }}
+                          >
+                            👶
+                          </motion.span>
+                        ))}
+                      </motion.div>
+                      
+                      {/* Working Age Icons */}
+                      <motion.div 
+                        className="flex flex-wrap justify-center items-center"
+                        animate={{ 
+                          scale: [1, 1.03, 1],
+                          transition: { duration: 2.5, repeat: Infinity }
+                        }}
+                      >
+                        {Array.from({ length: Math.max(1, Math.min(20, Math.round((currentData.workingAge / currentData.totalPopulation) * 30))) }).map((_, i) => (
+                          <motion.span
+                            key={`working-${i}`}
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.02 + 0.3 }}
+                            className="text-2xl"
+                            style={{ 
+                              display: 'inline-block',
+                              margin: '1px'
+                            }}
+                          >
+                            {i % 2 === 0 ? '👨‍💼' : '👩‍💼'}
+                          </motion.span>
+                        ))}
+                      </motion.div>
+                      
+                      {/* Elderly Icons */}
+                      <motion.div 
+                        className="flex flex-wrap justify-center items-center"
+                        animate={{ 
+                          scale: [1, 1.02, 1],
+                          transition: { duration: 3, repeat: Infinity }
+                        }}
+                      >
+                        {Array.from({ length: Math.max(1, Math.min(15, Math.round((currentData.elderly / currentData.totalPopulation) * 30))) }).map((_, i) => (
+                          <motion.span
+                            key={`elderly-${i}`}
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.02 + 0.6 }}
+                            className="text-2xl"
+                            style={{ 
+                              display: 'inline-block',
+                              margin: '1px'
+                            }}
+                          >
+                            {i % 2 === 0 ? '👴' : '👵'}
+                          </motion.span>
+                        ))}
+                      </motion.div>
+                    </div>
+                  </div>
+                  
+                  {/* Progress Bars for each demographic */}
+                  <div className="space-y-2 mt-4">
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-green-400">👶 Youth</span>
+                        <span className="text-green-400 font-mono">{((currentData.youth / currentData.totalPopulation) * 100).toFixed(1)}%</span>
+                      </div>
+                      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <motion.div 
+                          className="h-full bg-gradient-to-r from-green-500 to-green-400"
+                          animate={{ width: `${(currentData.youth / currentData.totalPopulation) * 100}%` }}
+                          transition={{ duration: 0.5 }}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-blue-400">👨‍💼 Working</span>
+                        <span className="text-blue-400 font-mono">{((currentData.workingAge / currentData.totalPopulation) * 100).toFixed(1)}%</span>
+                      </div>
+                      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <motion.div 
+                          className="h-full bg-gradient-to-r from-blue-500 to-blue-400"
+                          animate={{ width: `${(currentData.workingAge / currentData.totalPopulation) * 100}%` }}
+                          transition={{ duration: 0.5 }}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-orange-400">👴 Elderly</span>
+                        <span className="text-orange-400 font-mono">{((currentData.elderly / currentData.totalPopulation) * 100).toFixed(1)}%</span>
+                      </div>
+                      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <motion.div 
+                          className="h-full bg-gradient-to-r from-orange-500 to-orange-400"
+                          animate={{ width: `${(currentData.elderly / currentData.totalPopulation) * 100}%` }}
+                          transition={{ duration: 0.5 }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Compact Stats Cards */}
+                <div className="grid grid-cols-4 gap-2 mt-3">
+                  <div className="bg-black/30 rounded-lg p-2 text-center border border-white/5">
+                    <p className="text-[10px] text-gray-500">TOTAL</p>
+                    <p className="text-lg font-bold text-white">
+                      <CountUp end={currentData.totalPopulation} decimals={1} duration={0.5} suffix="M" />
+                    </p>
+                  </div>
+                  <div className="bg-green-900/20 rounded-lg p-2 text-center border border-green-500/20">
+                    <p className="text-[10px] text-gray-500">YOUTH</p>
+                    <p className="text-lg font-bold text-green-400">
+                      {currentData.youth.toFixed(1)}M
+                    </p>
+                  </div>
+                  <div className="bg-blue-900/20 rounded-lg p-2 text-center border border-blue-500/20">
+                    <p className="text-[10px] text-gray-500">WORKING</p>
+                    <p className="text-lg font-bold text-blue-400">
+                      {currentData.workingAge.toFixed(1)}M
+                    </p>
+                  </div>
+                  <div className="bg-orange-900/20 rounded-lg p-2 text-center border border-orange-500/20">
+                    <p className="text-[10px] text-gray-500">ELDERLY</p>
+                    <p className="text-lg font-bold text-orange-400">
+                      {currentData.elderly.toFixed(1)}M
+                    </p>
+                  </div>
+                </div>
+              </>
             )}
               </div>
             </div>
