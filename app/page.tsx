@@ -162,7 +162,8 @@ export default function Home() {
           
           {/* Country Rankings */}
           <div className="border-t border-white/10 pt-4">
-            <h4 className="text-white font-semibold mb-3">Birth Rate Rankings</h4>
+            <h4 className="text-white font-semibold mb-2">Birth Rate Rankings</h4>
+            <p className="text-xs text-gray-400 mb-3">Source: UN Population Division 2024</p>
             <div className="space-y-1 max-h-96 overflow-y-auto pr-1">
               {worldCountries
                 .sort((a, b) => a.birthRate - b.birthRate)

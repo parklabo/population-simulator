@@ -54,7 +54,7 @@ export const worldCountries: CountryData[] = [
     ageStructure: { youth: 11.0, working: 68.0, elderly: 21.0, medianAge: 46.5 }
   },
   { 
-    id: 'MO', name: 'Macao', nameKr: '마카오', population: 0.7, birthRate: 1.09, deathRate: 4.8, lifeExpectancy: 85, 
+    id: 'MO', name: 'Macao', nameKr: '마카오', population: 0.7, birthRate: 0.89, deathRate: 4.8, lifeExpectancy: 85, 
     continent: 'Asia', lat: 22.1987, lng: 113.5439, color: '#FF0000', flag: '🇲🇴',
     ageStructure: { youth: 13.5, working: 73.0, elderly: 13.5, medianAge: 40.8 }
   },
