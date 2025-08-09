@@ -311,7 +311,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                     <div className="absolute inset-0 flex items-center justify-center gap-1">
                       {/* Youth Icons */}
                       <motion.div 
-                        className="flex flex-wrap justify-center items-center"
+                        className="flex flex-wrap justify-center items-center gap-0.5"
                         animate={{ 
                           scale: [1, 1.05, 1],
                           transition: { duration: 2, repeat: Infinity }
@@ -323,7 +323,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                             initial={{ opacity: 0, scale: 0 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: i * 0.02 }}
-                            className="text-2xl"
+                            className="text-lg sm:text-2xl leading-none"
                             style={{ 
                               filter: 'hue-rotate(0deg)',
                               display: 'inline-block',
@@ -337,7 +337,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                       
                       {/* Working Age Icons */}
                       <motion.div 
-                        className="flex flex-wrap justify-center items-center"
+                        className="flex flex-wrap justify-center items-center gap-0.5"
                         animate={{ 
                           scale: [1, 1.03, 1],
                           transition: { duration: 2.5, repeat: Infinity }
@@ -349,10 +349,9 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                             initial={{ opacity: 0, scale: 0 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: i * 0.02 + 0.3 }}
-                            className="text-2xl"
+                            className="text-lg sm:text-2xl leading-none"
                             style={{ 
-                              display: 'inline-block',
-                              margin: '1px'
+                              display: 'inline-block'
                             }}
                           >
                             {i % 2 === 0 ? '👨‍💼' : '👩‍💼'}
@@ -362,7 +361,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                       
                       {/* Elderly Icons */}
                       <motion.div 
-                        className="flex flex-wrap justify-center items-center"
+                        className="flex flex-wrap justify-center items-center gap-0.5"
                         animate={{ 
                           scale: [1, 1.02, 1],
                           transition: { duration: 3, repeat: Infinity }
@@ -374,10 +373,9 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                             initial={{ opacity: 0, scale: 0 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: i * 0.02 + 0.6 }}
-                            className="text-2xl"
+                            className="text-lg sm:text-2xl leading-none"
                             style={{ 
-                              display: 'inline-block',
-                              margin: '1px'
+                              display: 'inline-block'
                             }}
                           >
                             {i % 2 === 0 ? '👴' : '👵'}

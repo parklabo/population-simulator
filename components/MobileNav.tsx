@@ -39,14 +39,14 @@ export default function MobileNav({
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/20 md:hidden z-[100] safe-bottom"
     >
-      <div className="grid grid-cols-4 gap-1 px-2 py-1">
+      <div className="grid grid-cols-4 gap-0.5 px-1 py-1">
         {navItems.map((item) => (
           <motion.button
             key={item.id}
             whileTap={{ scale: 0.95 }}
             onClick={item.onClick}
             className={`
-              relative flex flex-col items-center justify-center p-3 rounded-lg transition-all
+              relative flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all min-w-0
               ${currentView === item.id 
                 ? 'bg-gradient-to-t from-purple-600/30 to-cyan-600/30 border border-cyan-500/30' 
                 : 'hover:bg-white/5'
@@ -56,7 +56,7 @@ export default function MobileNav({
             disabled={item.id === 'mars'}
           >
             <motion.span 
-              className="text-2xl mb-1"
+              className="text-xl sm:text-2xl mb-0.5"
               animate={currentView === item.id ? {
                 scale: [1, 1.1, 1],
               } : {}}
@@ -64,18 +64,18 @@ export default function MobileNav({
             >
               {item.icon}
             </motion.span>
-            <span className={`text-xs font-medium ${
+            <span className={`text-[10px] sm:text-xs font-medium whitespace-nowrap ${
               currentView === item.id ? 'text-cyan-400' : 'text-gray-400'
             }`}>
               {item.label}
             </span>
             {item.id === 'moon' && (
-              <span className="absolute -top-1 -right-1 px-1.5 py-0.5 bg-yellow-500/30 border border-yellow-500/50 text-yellow-400 text-[8px] font-bold rounded">
+              <span className="absolute -top-0.5 -right-0.5 px-1 py-0.5 bg-yellow-500/30 border border-yellow-500/50 text-yellow-400 text-[7px] font-bold rounded leading-none">
                 BETA
               </span>
             )}
             {item.id === 'mars' && (
-              <span className="absolute -top-1 -right-1 text-xs">🔒</span>
+              <span className="absolute -top-0.5 -right-0.5 text-[10px]">🔒</span>
             )}
           </motion.button>
         ))}
