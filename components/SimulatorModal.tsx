@@ -128,7 +128,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          className="relative bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-2xl rounded-3xl p-6 max-w-7xl w-full max-h-[92vh] overflow-y-auto border border-white/10 shadow-2xl"
+          className="relative bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-2xl rounded-t-3xl sm:rounded-3xl p-4 sm:p-6 w-full sm:max-w-7xl h-full sm:h-auto sm:max-h-[92vh] overflow-y-auto border border-white/10 shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Compact Header */}
@@ -136,7 +136,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
             <div className="flex items-center gap-3">
               <span className="text-3xl">{country.flag}</span>
               <div>
-                <h2 className="text-2xl font-bold text-white">{country.name}</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">{country.name}</h2>
                 <p className="text-xs text-gray-400">
                   {country.isCelestial ? '🚀 Colony Simulator' : 'Population Simulator'} • 2025-2125
                 </p>
@@ -151,9 +151,9 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
           </div>
           
           {/* Main Content Grid */}
-          <div className="grid grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
             {/* Left Panel - Controls */}
-            <div className="col-span-3">
+            <div className="lg:col-span-3">
               <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-4 border border-white/5">
                 {/* Year Display */}
                 <div className="text-center mb-6">
@@ -246,7 +246,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
             </div>
             
             {/* Center Panel - Visualization */}
-            <div className="col-span-6">
+            <div className="lg:col-span-6">
               {/* Main Chart */}
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 to-pink-600/5 rounded-3xl blur-xl" />
@@ -467,7 +467,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
             </div>
             
             {/* Right Panel - Results */}
-            <div className="col-span-3">
+            <div className="lg:col-span-3">
               {/* Results Section - Show after simulation completes */}
               {simulationComplete ? (
                 <motion.div

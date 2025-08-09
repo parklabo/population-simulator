@@ -21,6 +21,7 @@ const Globe = dynamic(() => import('react-globe.gl'), {
 const StarField = dynamic(() => import('@/components/StarField'), { ssr: false });
 const CelestialBodies = dynamic(() => import('@/components/CelestialBodies'), { ssr: false });
 const Footer = dynamic(() => import('@/components/Footer'), { ssr: false });
+const MobileNav = dynamic(() => import('@/components/MobileNav'), { ssr: false });
 
 export default function Home() {
   const globeEl = useRef<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -30,6 +31,7 @@ export default function Home() {
   const [isMarsModalOpen, setIsMarsModalOpen] = useState(false);
   const [isMoonRTSOpen, setIsMoonRTSOpen] = useState(false);
   const [countries, setCountries] = useState<{ features: any[] }>({ features: [] }); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [currentView, setCurrentView] = useState<'earth' | 'moon' | 'mars' | 'simulate'>('earth');
   // const [starData, setStarData] = useState<any[]>([]); // Currently unused
   
   // Load world topology
@@ -140,14 +142,14 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
-          className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-8 pointer-events-auto"
+          className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4 md:p-8 pointer-events-auto"
         >
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                 Global Population Map
               </h1>
-              <p className="text-gray-400 mt-2">Select a country to explore demographic futures • 100-Year Projection</p>
+              <p className="text-gray-400 mt-2 text-xs sm:text-sm md:text-base">Select a country to explore demographic futures • 100-Year Projection</p>
             </div>
             
           </div>
@@ -157,7 +159,7 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
-          className="absolute top-32 left-8 bg-gradient-to-br from-black/80 via-gray-900/80 to-black/80 backdrop-blur-xl rounded-2xl border border-white/5 shadow-2xl pointer-events-auto max-w-xs overflow-hidden"
+          className="hidden md:block absolute top-32 left-8 bg-gradient-to-br from-black/80 via-gray-900/80 to-black/80 backdrop-blur-xl rounded-2xl border border-white/5 shadow-2xl pointer-events-auto max-w-xs overflow-hidden"
         >
           {/* Header with Gradient */}
           <div className="bg-gradient-to-r from-red-600/20 to-orange-600/20 p-4 border-b border-white/10">
@@ -377,6 +379,28 @@ export default function Home() {
       <MarsRTSGame 
         isOpen={isMoonRTSOpen}
         onClose={() => setIsMoonRTSOpen(false)}
+      />
+      
+      {/* Footer - Hidden on mobile to avoid conflict with MobileNav */}
+      <div className="hidden md:block">
+        <Footer />
+      </div>
+      
+      {/* Mobile Navigation */}
+      <MobileNav 
+        onSimulateClick={() => {
+          setIsModalOpen(true);
+          setCurrentView('simulate');
+        }}
+        onMoonClick={() => {
+          setIsMoonRTSOpen(true);
+          setCurrentView('moon');
+        }}
+        onMarsClick={() => {
+          setIsMarsModalOpen(true);
+          setCurrentView('mars');
+        }}
+        currentView={currentView}
       />
     </div>
   );

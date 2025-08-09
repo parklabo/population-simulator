@@ -15,7 +15,7 @@ export default function CelestialBodies({ onMoonClick }: CelestialBodiesProps) {
     <>
       {/* Mars - Fixed position (LOCKED) */}
       <motion.div
-        className="fixed cursor-not-allowed opacity-50"
+        className="fixed cursor-not-allowed opacity-50 hidden sm:block"
         style={{ 
           right: '50px', 
           bottom: '200px',
@@ -100,7 +100,7 @@ export default function CelestialBodies({ onMoonClick }: CelestialBodiesProps) {
       
       {/* Moon - Fixed position (Larger and more to the right) */}
       <motion.div
-        className="fixed cursor-pointer"
+        className="fixed cursor-pointer hidden sm:block"
         style={{ 
           left: '120px',  // Moved more to the right
           bottom: '200px',
