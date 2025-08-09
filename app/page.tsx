@@ -280,35 +280,6 @@ export default function Home() {
           )}
         </AnimatePresence>
         
-        {/* Stats Bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-black/60 backdrop-blur-lg rounded-full px-8 py-4 border border-white/10 pointer-events-auto"
-        >
-          <div className="flex items-center gap-8">
-            <div className="text-center">
-              <p className="text-gray-400 text-xs">Countries in Crisis</p>
-              <p className="text-2xl font-bold text-red-400">
-                {worldCountries.filter(c => c.birthRate < 2.1).length}
-              </p>
-            </div>
-            <div className="w-px h-8 bg-white/20"></div>
-            <div className="text-center">
-              <p className="text-gray-400 text-xs">Extreme Crisis</p>
-              <p className="text-2xl font-bold text-red-600">
-                {worldCountries.filter(c => c.birthRate < 1.0).length}
-              </p>
-            </div>
-            <div className="w-px h-8 bg-white/20"></div>
-            <div className="text-center">
-              <p className="text-gray-400 text-xs">Data Average</p>
-              <p className="text-2xl font-bold text-yellow-400">
-                {(worldCountries.reduce((sum, c) => sum + c.birthRate, 0) / worldCountries.length).toFixed(2)}
-              </p>
-            </div>
-          </div>
-        </motion.div>
       </div>
       
       {/* Simulator Modal */}
