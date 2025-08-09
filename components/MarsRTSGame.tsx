@@ -633,9 +633,12 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
                     🌙
                   </motion.div>
                   <div>
-                    <h1 className="text-5xl font-black mb-1">
+                    <h1 className="text-5xl font-black mb-1 flex items-center justify-center gap-3">
                       <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-500 bg-clip-text text-transparent">
                         LUNAR DEFENSE
+                      </span>
+                      <span className="px-2 py-1 bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 text-base font-bold rounded">
+                        BETA
                       </span>
                     </h1>
                     <div className="text-lg text-cyan-400 font-semibold">
@@ -897,7 +900,12 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
           {/* Header */}
           <div className="absolute top-0 left-0 right-0 bg-black/80 border-b border-cyan-500/30 p-2 flex justify-between items-center z-10">
             <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold text-cyan-400">LUNAR DEFENSE - Protect Humanity&apos;s Future</h2>
+              <h2 className="text-xl font-bold text-cyan-400 flex items-center gap-2">
+                LUNAR DEFENSE - Protect Humanity&apos;s Future
+                <span className="px-2 py-0.5 bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 text-xs font-bold rounded">
+                  BETA
+                </span>
+              </h2>
               <div className={`text-sm px-2 py-1 rounded ${
                 difficulty === 'easy' ? 'bg-green-500/20 text-green-400' :
                 difficulty === 'normal' ? 'bg-blue-500/20 text-blue-400' :
