@@ -96,26 +96,37 @@ export class PopulationSimulator {
         const generationsPassed = yearOffset / this.GENERATION_LENGTH;
         
         // Birth calculations
-        const womenOfChildbearingAge = workingAge * 0.25; // Rough estimate
+        const womenOfChildbearingAge = workingAge * 0.25; // Women aged 15-45 roughly
         const annualBirths = (womenOfChildbearingAge * birthRate / 30) * 5; // 5-year period
         
-        // Death calculations based on age structure
-        const youthMortality = youth * 0.001 * 5;
-        const workingMortality = workingAge * 0.005 * 5;
-        const elderlyMortality = elderly * ((100 - lifeExpectancy) / 100) * 5;
+        // Death calculations based on age structure and life expectancy
+        const youthMortality = youth * 0.001 * 5; // Very low youth mortality
+        const workingMortality = workingAge * 0.003 * 5; // Low working age mortality
+        // Elderly mortality based on life expectancy (higher but realistic)
+        const elderlyMortality = elderly * (0.04 * 5); // ~4% per year for elderly
         const totalDeaths = youthMortality + workingMortality + elderlyMortality;
         
         // Immigration effect (5-year total)
         const immigrationEffect = immigrationRate * 1000 * 5;
         
-        // Age transitions
-        const youthToWorking = youth * 0.067 * 5; // ~1/15 of youth age up every 5 years
-        const workingToElderly = workingAge * 0.015 * 5;
+        // Age transitions (5-year period)
+        // Youth to working: 1/3 of youth transition over 15 years, so 1/3 * 5/15 = 1/9 per 5 years
+        const youthToWorking = youth * (5.0 / 15.0); // 5 years out of 15 years of youth
+        // Working to elderly: transition from 15-64 to 65+, so over 50 years
+        const workingToElderly = workingAge * (5.0 / 50.0); // 5 years out of 50 years of working age
         
         // Update age groups
         youth = youth + annualBirths - youthMortality - youthToWorking;
         workingAge = workingAge + youthToWorking - workingMortality - workingToElderly + immigrationEffect * 0.7;
         elderly = elderly + workingToElderly - elderlyMortality + immigrationEffect * 0.3;
+        
+        // Additional aging effect for low birth rate societies
+        if (birthRate < 1.5 && yearOffset > 20) {
+          // Accelerate aging in severe crisis countries after 20 years
+          const additionalAging = workingAge * 0.01 * Math.min((yearOffset - 20) / 50, 1);
+          workingAge = Math.max(0, workingAge - additionalAging);
+          elderly = elderly + additionalAging;
+        }
         
         // Ensure non-negative populations
         youth = Math.max(0, youth);
