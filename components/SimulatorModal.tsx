@@ -155,7 +155,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
               <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-4 border border-white/5">
                 {/* Year Display */}
                 <div className="text-center mb-6">
-                  <p className="text-xs text-gray-500 mb-2">CURRENT YEAR</p>
+                  <p className="text-xs text-gray-500 mb-2">TARGET YEAR</p>
                   <motion.div
                     key={currentYear}
                     initial={{ scale: 0.9 }}
@@ -359,7 +359,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                   animate={{ opacity: 1, x: 0 }}
                   className="bg-black/30 backdrop-blur-sm rounded-2xl p-4 border border-white/5"
                 >
-                  <h3 className="text-sm font-semibold text-gray-400 mb-4">PROJECTION RESULTS</h3>
+                  <h3 className="text-sm font-semibold text-gray-400 mb-4">RESULTS</h3>
                   
                   <div className="space-y-3">
                     <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/30 rounded-xl p-3 border border-purple-500/20">
@@ -407,7 +407,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                 </motion.div>
               ) : (
                 <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-4 border border-white/5">
-                  <h3 className="text-sm font-semibold text-gray-400 mb-4">PROJECTION RESULTS</h3>
+                  <h3 className="text-sm font-semibold text-gray-400 mb-4">RESULTS</h3>
                   <div className="text-center py-8">
                     <p className="text-gray-500 text-sm">Run simulation to see results</p>
                   </div>
@@ -434,14 +434,14 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                   <div className="absolute top-1/2 -translate-y-1/2 w-full h-2 bg-gray-700 rounded-full shadow-inner">
                     <div 
                       className="absolute h-full bg-gradient-to-r from-purple-600 to-purple-400 rounded-full transition-all duration-200"
-                      style={{ width: `${((params.birthRate - 0.5) / 2.5) * 100}%` }}
+                      style={{ width: `${((params.birthRate - 0.5) / 5.5) * 100}%` }}
                     />
                   </div>
                   {/* Range Input */}
                   <input
                     type="range"
                     min="0.5"
-                    max="3.0"
+                    max="6.0"
                     step="0.01"
                     value={params.birthRate}
                     onChange={(e) => handleParamChange('birthRate', parseFloat(e.target.value))}
