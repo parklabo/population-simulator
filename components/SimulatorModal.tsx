@@ -268,7 +268,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                   type="range"
                   min="0.5"
                   max="3.0"
-                  step="0.1"
+                  step="0.01"
                   value={params.birthRate}
                   onChange={(e) => handleParamChange('birthRate', parseFloat(e.target.value))}
                   className="w-full mb-2"
