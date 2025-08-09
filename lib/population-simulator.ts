@@ -50,10 +50,36 @@ export class PopulationSimulator {
     const data: PopulationData[] = [];
     const initialPop = currentPopulation * 1000000; // Convert to actual numbers
     
-    // Initialize age structure (simplified)
-    let youth = initialPop * 0.15;
-    let workingAge = initialPop * 0.67;
-    let elderly = initialPop * 0.18;
+    // Initialize age structure based on birth rate (more realistic)
+    // Countries with lower birth rates tend to have fewer youth and more elderly
+    let youthRatio: number;
+    let elderlyRatio: number;
+    
+    if (birthRate < 1.0) {
+      // Extreme crisis (like Korea, Taiwan)
+      youthRatio = 0.11;  // 11% youth
+      elderlyRatio = 0.18; // 18% elderly
+    } else if (birthRate < 1.5) {
+      // Severe crisis (like Japan, Italy)
+      youthRatio = 0.13;  // 13% youth
+      elderlyRatio = 0.20; // 20% elderly
+    } else if (birthRate < 2.1) {
+      // Below replacement
+      youthRatio = 0.16;  // 16% youth
+      elderlyRatio = 0.15; // 15% elderly
+    } else if (birthRate < 3.0) {
+      // Near or above replacement
+      youthRatio = 0.20;  // 20% youth
+      elderlyRatio = 0.12; // 12% elderly
+    } else {
+      // High birth rate (developing countries)
+      youthRatio = 0.30;  // 30% youth
+      elderlyRatio = 0.08; // 8% elderly
+    }
+    
+    let youth = initialPop * youthRatio;
+    let workingAge = initialPop * (1 - youthRatio - elderlyRatio);
+    let elderly = initialPop * elderlyRatio;
     
     let peakPopulation = currentPopulation;
     let peakYear = startYear;
