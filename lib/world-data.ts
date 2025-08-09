@@ -54,6 +54,11 @@ export const worldCountries: CountryData[] = [
     ageStructure: { youth: 11.0, working: 68.0, elderly: 21.0, medianAge: 46.5 }
   },
   { 
+    id: 'MO', name: 'Macao', nameKr: '마카오', population: 0.7, birthRate: 1.09, deathRate: 4.8, lifeExpectancy: 85, 
+    continent: 'Asia', lat: 22.1987, lng: 113.5439, color: '#FF0000', flag: '🇲🇴',
+    ageStructure: { youth: 13.5, working: 73.0, elderly: 13.5, medianAge: 40.8 }
+  },
+  { 
     id: 'TH', name: 'Thailand', nameKr: '태국', population: 70.0, birthRate: 1.51, deathRate: 8.3, lifeExpectancy: 77, 
     continent: 'Asia', lat: 13.7563, lng: 100.5018, color: '#FFA500', flag: '🇹🇭',
     ageStructure: { youth: 15.7, working: 69.5, elderly: 14.8, medianAge: 40.5 }
@@ -102,10 +107,26 @@ export const worldCountries: CountryData[] = [
   },
   
   // Americas
-  { id: 'US', name: 'United States', nameKr: '미국', population: 331.9, birthRate: 1.70, deathRate: 8.7, lifeExpectancy: 79, continent: 'Americas', lat: 38.9072, lng: -77.0369, color: '#FFA500', flag: '🇺🇸' },
-  { id: 'CA', name: 'Canada', nameKr: '캐나다', population: 38.2, birthRate: 1.50, deathRate: 7.8, lifeExpectancy: 82, continent: 'Americas', lat: 45.4215, lng: -75.6972, color: '#FFA500', flag: '🇨🇦' },
-  { id: 'BR', name: 'Brazil', nameKr: '브라질', population: 215.3, birthRate: 1.75, deathRate: 6.8, lifeExpectancy: 76, continent: 'Americas', lat: -15.7975, lng: -47.8919, color: '#FFA500', flag: '🇧🇷' },
-  { id: 'MX', name: 'Mexico', nameKr: '멕시코', population: 128.9, birthRate: 2.05, deathRate: 6.3, lifeExpectancy: 75, continent: 'Americas', lat: 19.4326, lng: -99.1332, color: '#90EE90', flag: '🇲🇽' },
+  { 
+    id: 'US', name: 'United States', nameKr: '미국', population: 331.9, birthRate: 1.70, deathRate: 8.7, lifeExpectancy: 79, 
+    continent: 'Americas', lat: 38.9072, lng: -77.0369, color: '#FFA500', flag: '🇺🇸',
+    ageStructure: { youth: 18.0, working: 64.7, elderly: 17.3, medianAge: 38.5 }
+  },
+  { 
+    id: 'CA', name: 'Canada', nameKr: '캐나다', population: 38.2, birthRate: 1.50, deathRate: 7.8, lifeExpectancy: 82, 
+    continent: 'Americas', lat: 45.4215, lng: -75.6972, color: '#FFA500', flag: '🇨🇦',
+    ageStructure: { youth: 15.6, working: 65.7, elderly: 18.7, medianAge: 41.8 }
+  },
+  { 
+    id: 'BR', name: 'Brazil', nameKr: '브라질', population: 215.3, birthRate: 1.75, deathRate: 6.8, lifeExpectancy: 76, 
+    continent: 'Americas', lat: -15.7975, lng: -47.8919, color: '#FFA500', flag: '🇧🇷',
+    ageStructure: { youth: 19.8, working: 69.7, elderly: 10.5, medianAge: 34.2 }
+  },
+  { 
+    id: 'MX', name: 'Mexico', nameKr: '멕시코', population: 128.9, birthRate: 2.05, deathRate: 6.3, lifeExpectancy: 75, 
+    continent: 'Americas', lat: 19.4326, lng: -99.1332, color: '#90EE90', flag: '🇲🇽',
+    ageStructure: { youth: 24.8, working: 66.7, elderly: 8.5, medianAge: 29.8 }
+  },
   
   // Oceania
   { id: 'AU', name: 'Australia', nameKr: '호주', population: 25.7, birthRate: 1.65, deathRate: 6.7, lifeExpectancy: 83, continent: 'Oceania', lat: -35.2809, lng: 149.1300, color: '#FFA500', flag: '🇦🇺' },
