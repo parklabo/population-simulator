@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { worldCountries, getCountryColor, getCrisisLevel, CountryData } from '@/lib/world-data';
+import { worldCountries, celestialBodies, getCountryColor, getCrisisLevel, CountryData } from '@/lib/world-data';
 import SimulatorModal from '@/components/SimulatorModal';
+import MarsColonyModal from '@/components/MarsColonyModal';
 
 // Dynamic imports for client-side only components
 const Globe = dynamic(() => import('react-globe.gl'), { 
@@ -17,13 +18,16 @@ const Globe = dynamic(() => import('react-globe.gl'), {
 });
 
 const StarField = dynamic(() => import('@/components/StarField'), { ssr: false });
+const CelestialBodies = dynamic(() => import('@/components/CelestialBodies'), { ssr: false });
 
 export default function Home() {
   const globeEl = useRef<any>(null);
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null);
   const [hoveredCountry, setHoveredCountry] = useState<CountryData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMarsModalOpen, setIsMarsModalOpen] = useState(false);
   const [countries, setCountries] = useState<any>({ features: [] });
+  const [starData, setStarData] = useState<any[]>([]);
   
   // Load world topology
   useEffect(() => {
@@ -74,46 +78,60 @@ export default function Home() {
     }
   };
   
+  // Handle celestial body clicks
+  const handleMarsClick = () => {
+    setIsMarsModalOpen(true);
+  };
+  
+  const handleMoonClick = () => {
+    const moon = celestialBodies.find(body => body.id === 'moon');
+    if (moon) {
+      setSelectedCountry(moon);
+    }
+  };
+  
   return (
     <div className="relative w-full h-screen bg-black overflow-hidden">
-      {/* Starfield Background */}
+      {/* Animated Starfield Background */}
       <StarField />
       
       {/* Globe */}
-      <Globe
-        ref={globeEl}
-        globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-        bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-        backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
-        
-        // Countries layer
-        hexPolygonsData={countries.features || []}
-        hexPolygonResolution={3}
-        hexPolygonMargin={0.3}
-        hexPolygonColor={() => '#ffffff10'}
-        
-        // Points for countries
-        pointsData={countryPoints}
-        pointAltitude={0.01}
-        pointColor="color"
-        pointRadius="size"
-        pointLabel={(d: any) => `
-          <div class="bg-black/80 backdrop-blur-sm p-2 rounded-lg border border-white/20">
-            <div class="text-white font-bold">${d.country.flag} ${d.country.name}</div>
-            <div class="text-xs text-gray-300">Population: ${d.country.population.toFixed(1)}M</div>
-            <div class="text-xs ${d.country.birthRate < 1.5 ? 'text-red-400' : 'text-green-400'}">
-              Birth Rate: ${d.country.birthRate}
+      <div className="absolute inset-0">
+        <Globe
+          ref={globeEl}
+          globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+          bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
+          backgroundColor="rgba(0,0,0,0)"
+          
+          // Countries layer
+          hexPolygonsData={countries.features || []}
+          hexPolygonResolution={3}
+          hexPolygonMargin={0.3}
+          hexPolygonColor={() => '#ffffff10'}
+          
+          // Points for countries
+          pointsData={countryPoints}
+          pointAltitude={0.01}
+          pointColor="color"
+          pointRadius="size"
+          pointLabel={(d: any) => `
+            <div class="bg-black/80 backdrop-blur-sm p-2 rounded-lg border border-white/20">
+              <div class="text-white font-bold">${d.country.flag} ${d.country.name}</div>
+              <div class="text-xs text-gray-300">Population: ${d.country.population.toFixed(1)}M</div>
+              <div class="text-xs ${d.country.birthRate < 1.5 ? 'text-red-400' : 'text-green-400'}">
+                Birth Rate: ${d.country.birthRate}
+              </div>
             </div>
-          </div>
-        `}
-        onPointClick={handleCountryClick}
-        onPointHover={(point: any) => setHoveredCountry(point?.country || null)}
-        
-        // Atmosphere
-        showAtmosphere={true}
-        atmosphereColor="#3b82f6"
-        atmosphereAltitude={0.2}
-      />
+          `}
+          onPointClick={handleCountryClick}
+          onPointHover={(point: any) => setHoveredCountry(point?.country || null)}
+          
+          // Atmosphere
+          showAtmosphere={true}
+          atmosphereColor="#3b82f6"
+          atmosphereAltitude={0.2}
+        />
+      </div>
       
       {/* UI Overlay */}
       <div className="absolute inset-0 pointer-events-none">
@@ -273,6 +291,9 @@ export default function Home() {
                     <span className="text-4xl">{selectedCountry.flag}</span>
                     {selectedCountry.name}
                   </h2>
+                  {selectedCountry.isCelestial && (
+                    <p className="text-xs text-purple-400 mt-1">🚀 Future Colony Simulation</p>
+                  )}
                 </div>
                 <button
                   onClick={() => setSelectedCountry(null)}
@@ -338,6 +359,15 @@ export default function Home() {
           country={selectedCountry}
         />
       )}
+      
+      {/* Celestial Bodies - Always on top */}
+      <CelestialBodies onMarsClick={handleMarsClick} onMoonClick={handleMoonClick} />
+      
+      {/* Mars Colony Modal */}
+      <MarsColonyModal 
+        isOpen={isMarsModalOpen}
+        onClose={() => setIsMarsModalOpen(false)}
+      />
     </div>
   );
 }

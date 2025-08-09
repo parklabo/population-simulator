@@ -137,7 +137,9 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
               <span className="text-3xl">{country.flag}</span>
               <div>
                 <h2 className="text-2xl font-bold text-white">{country.name}</h2>
-                <p className="text-xs text-gray-400">Population Simulator • 2025-2225</p>
+                <p className="text-xs text-gray-400">
+                  {country.isCelestial ? '🚀 Colony Simulator' : 'Population Simulator'} • 2025-2225
+                </p>
               </div>
             </div>
             <button
@@ -518,6 +520,14 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                       </p>
                     </div>
                   )}
+                  
+                  {country.isCelestial && (
+                    <div className="mt-4 p-3 bg-purple-500/10 border border-purple-500/30 rounded-xl">
+                      <p className="text-xs text-purple-400 leading-relaxed">
+                        🚀 Colony simulation factors in harsh environment conditions
+                      </p>
+                    </div>
+                  )}
                 </motion.div>
               ) : (
                 <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-4 border border-white/5">
@@ -542,7 +552,9 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
               </div>
             <div className="grid grid-cols-3 gap-6">
               <div className="group">
-                <label className="block text-sm text-gray-400 mb-3 group-hover:text-purple-400 transition-colors">Birth Rate</label>
+                <label className="block text-sm text-gray-400 mb-3 group-hover:text-purple-400 transition-colors">
+                  {country.isCelestial ? 'Colony Birth Rate' : 'Birth Rate'}
+                </label>
                 <div className="relative mb-4">
                   {/* Track Background */}
                   <div className="absolute top-1/2 -translate-y-1/2 w-full h-2 bg-gray-700 rounded-full shadow-inner">
@@ -598,7 +610,9 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
               </div>
               
               <div className="group">
-                <label className="block text-sm text-gray-400 mb-3 group-hover:text-green-400 transition-colors">Net Immigration</label>
+                <label className="block text-sm text-gray-400 mb-3 group-hover:text-green-400 transition-colors">
+                  {country.isCelestial ? 'New Colonists/Year' : 'Net Immigration'}
+                </label>
                 <div className="relative mb-4">
                   {/* Track Background */}
                   <div className="absolute top-1/2 -translate-y-1/2 w-full h-2 bg-gray-700 rounded-full shadow-inner">

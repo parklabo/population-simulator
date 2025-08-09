@@ -1,24 +1,63 @@
 export interface CountryData {
   id: string;
   name: string;
-  nameKr: string;
+  nameKr?: string;
   population: number; // in millions
   birthRate: number;
-  deathRate: number;
+  deathRate?: number;
   lifeExpectancy: number;
-  continent: string;
+  continent?: string;
   lat: number;
   lng: number;
-  color: string;
+  color?: string;
   flag: string;
+  isCelestial?: boolean; // Flag for celestial bodies
   // UN Population Division Data (2024)
   ageStructure?: {
     youth: number;      // 0-14 years (%)
     working: number;    // 15-64 years (%)
     elderly: number;    // 65+ years (%)
-    medianAge: number;  // Median age
+    medianAge?: number;  // Median age
   };
 }
+
+// Special celestial bodies for future colonization
+export const celestialBodies: CountryData[] = [
+  {
+    id: 'mars',
+    name: 'Mars Colony',
+    nameKr: '화성 식민지',
+    flag: '🔴',
+    lat: 0,
+    lng: 0,
+    population: 0.001, // 1000 initial colonists
+    birthRate: 1.8, // Lower due to harsh conditions
+    lifeExpectancy: 65, // Reduced due to radiation and environment
+    isCelestial: true,
+    ageStructure: {
+      youth: 5,     // Very few children initially
+      working: 90,  // Mostly working-age adults
+      elderly: 5    // Few elderly
+    }
+  },
+  {
+    id: 'moon',
+    name: 'Lunar Base',
+    nameKr: '달 기지',
+    flag: '🌙',
+    lat: 0,
+    lng: 0,
+    population: 0.0001, // 100 initial researchers
+    birthRate: 1.2,
+    lifeExpectancy: 70,
+    isCelestial: true,
+    ageStructure: {
+      youth: 2,
+      working: 95,
+      elderly: 3
+    }
+  }
+];
 
 export const worldCountries: CountryData[] = [
   // Asia - Critical
