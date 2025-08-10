@@ -193,7 +193,12 @@ export default function Home() {
           // HTML Elements for flags - show on all devices with optimization
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           htmlElementsData={performanceMode 
-            ? countryPoints.filter((_, index) => index % 2 === 0) // Show every other flag on mobile
+            ? countryPoints.filter((point) => {
+                // On mobile, show flags for critical countries and major countries
+                return point.country.birthRate < 1.5 || // Critical birth rate countries
+                       point.country.population > 50 || // Major population countries
+                       ['JP', 'KR', 'CN', 'US', 'TW', 'SG', 'HK', 'AU', 'NZ', 'GB', 'DE', 'FR', 'IT', 'ES', 'CA', 'BR', 'IN'].includes(point.country.id); // Key countries
+              })
             : countryPoints
           }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -422,6 +427,7 @@ export default function Home() {
                       getCrisisLevel(selectedCountry.birthRate) === 'CRITICAL' ? 'bg-yellow-500/10 border-yellow-500/20' :
                       'bg-green-500/10 border-green-500/20'
                     }`}>
+                      <p className="text-gray-400 text-xs">Crisis Level</p>
                       <div className="flex items-center gap-1.5">
                         <div className={`w-2 h-2 rounded-full ${
                           getCrisisLevel(selectedCountry.birthRate) === 'EXTREME' ? 'bg-red-500 animate-pulse' :
@@ -429,7 +435,7 @@ export default function Home() {
                           getCrisisLevel(selectedCountry.birthRate) === 'CRITICAL' ? 'bg-yellow-500' :
                           'bg-green-500'
                         }`}></div>
-                        <span className={`text-[10px] font-semibold ${
+                        <span className={`text-xl font-bold ${
                           getCrisisLevel(selectedCountry.birthRate) === 'EXTREME' ? 'text-red-400' :
                           getCrisisLevel(selectedCountry.birthRate) === 'SEVERE' ? 'text-orange-400' :
                           getCrisisLevel(selectedCountry.birthRate) === 'CRITICAL' ? 'text-yellow-400' :
@@ -438,7 +444,6 @@ export default function Home() {
                           {getCrisisLevel(selectedCountry.birthRate)}
                         </span>
                       </div>
-                      <p className="text-gray-400 text-xs">Crisis Level</p>
                     </div>
                   </div>
                   

@@ -143,11 +143,25 @@ export function createFlagElement(country: CountryData, size: 'small' | 'medium'
   const status = country.birthRate < 1.5 ? 'critical' : 
                  country.birthRate < 2.1 ? 'warning' : 'stable';
 
+  // Add explicit font-family to ensure emoji rendering
+  const flagStyle = `
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", "EmojiOne Color", "Twemoji Mozilla", system-ui, -apple-system, sans-serif;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  `;
+
+  // Fallback for countries with potential rendering issues
+  const getFlagDisplay = () => {
+    // Add country code fallback for specific countries that might have rendering issues
+    if (country.id === 'JP' && !country.flag) return 'JP';
+    if (country.id === 'TW' && !country.flag) return 'TW';
+    return country.flag || country.id;
+  };
+
   // Simpler, cleaner design without too many effects
   return `
     <div class="flag-container relative flex items-center justify-center">
-      <div class="${sizeMap[size]} flag-emoji" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));">
-        ${country.flag}
+      <div class="${sizeMap[size]} flag-emoji" style="${flagStyle}">
+        <span style="display: inline-block; vertical-align: middle;">${getFlagDisplay()}</span>
       </div>
       ${status === 'critical' ? '<div class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>' : ''}
     </div>
