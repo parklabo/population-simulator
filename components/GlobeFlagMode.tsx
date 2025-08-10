@@ -133,29 +133,23 @@ export default function GlobeFlagMode({ isEnabled, onToggle, selectedCountry }: 
 }
 
 // Helper function to generate flag HTML elements
-export function createFlagElement(country: CountryData, size: 'small' | 'medium' | 'large') {
+export function createFlagElement(country: CountryData, size: 'small' | 'medium' | 'large' = 'medium') {
   const sizeMap = {
-    small: 'text-sm',
-    medium: 'text-lg',
+    small: 'text-base',
+    medium: 'text-xl',
     large: 'text-2xl'
-  };
-
-  const glowColors = {
-    critical: 'shadow-red-500/50',
-    warning: 'shadow-orange-500/50',
-    stable: 'shadow-green-500/50'
   };
 
   const status = country.birthRate < 1.5 ? 'critical' : 
                  country.birthRate < 2.1 ? 'warning' : 'stable';
 
+  // Simpler, cleaner design without too many effects
   return `
-    <div class="flag-container relative">
-      <div class="${sizeMap[size]} flag-emoji animate-pulse-slow">
+    <div class="flag-container relative flex items-center justify-center">
+      <div class="${sizeMap[size]} flag-emoji" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));">
         ${country.flag}
       </div>
-      <div class="absolute inset-0 rounded-full blur-xl ${glowColors[status]} opacity-50"></div>
-      ${status === 'critical' ? '<div class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></div>' : ''}
+      ${status === 'critical' ? '<div class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>' : ''}
     </div>
   `;
 }

@@ -7,7 +7,7 @@ import { worldCountries, getCountryColor, getCrisisLevel, CountryData } from '@/
 import SimulatorModal from '@/components/SimulatorModal';
 import MarsColonyModal from '@/components/MarsColonyModal';
 import MarsRTSGame from '@/components/MarsRTSGame';
-import GlobeFlagMode, { createFlagElement } from '@/components/GlobeFlagMode';
+import { createFlagElement } from '@/components/GlobeFlagMode';
 
 // Dynamic imports for client-side only components
 const Globe = dynamic(() => import('react-globe.gl'), { 
@@ -58,10 +58,14 @@ export default function Home() {
   const [showMobileCountryList, setShowMobileCountryList] = useState(false);
   const [showDesktopMessage, setShowDesktopMessage] = useState(false);
   
-  // Flag display states
-  const [showFlags, setShowFlags] = useState(false);
-  const [flagDisplayMode, setFlagDisplayMode] = useState<'flags' | 'dots' | 'both'>('dots');
-  const [flagSize] = useState<'small' | 'medium' | 'large'>('medium');
+  // Performance mode - Auto-detect based on device
+  const [performanceMode] = useState(() => {
+    // Auto-detect performance mode based on device
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768; // Enable on mobile for better performance
+    }
+    return false;
+  });
   
   // Load world topology
   useEffect(() => {
@@ -83,16 +87,20 @@ export default function Home() {
     }
   }, []);
   
-  // Generate points for countries
-  const countryPoints = useMemo<CountryPoint[]>(() => 
-    worldCountries.map(country => ({
+  // Generate points for countries (filter based on performance mode)
+  const countryPoints = useMemo<CountryPoint[]>(() => {
+    const countries = performanceMode 
+      ? worldCountries.filter(c => c.birthRate < 2.1)
+      : worldCountries;
+    
+    return countries.map(country => ({
       lat: country.lat,
       lng: country.lng,
       size: Math.max(0.1, Math.log(country.population) / 10),
       color: getCountryColor(country.birthRate),
       country: country
-    })), []
-  );
+    }));
+  }, [performanceMode]);
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleCountryClick = (point: any) => {
@@ -147,8 +155,8 @@ export default function Home() {
           hexPolygonMargin={0.3}
           hexPolygonColor={() => '#ffffff10'}
           
-          // Points for countries (show when not in flags-only mode)
-          pointsData={flagDisplayMode !== 'flags' ? countryPoints : []}
+          // Points for countries (always show with flags in 'both' mode)
+          pointsData={countryPoints}
           pointAltitude={0.01}
           pointColor="color"
           pointRadius="size"
@@ -166,13 +174,13 @@ export default function Home() {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onPointHover={(point: any) => setHoveredCountry(point?.country || null)}
           
-          // HTML Elements for flags (show when in flags or both mode)
+          // HTML Elements for flags (always show in 'both' mode)
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          htmlElementsData={flagDisplayMode !== 'dots' ? countryPoints : []}
+          htmlElementsData={countryPoints}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           htmlElement={(d: any) => {
             const el = document.createElement('div');
-            el.innerHTML = createFlagElement(d.country, flagSize);
+            el.innerHTML = createFlagElement(d.country, 'medium');
             el.style.pointerEvents = 'none';
             // Add click handler
             el.onclick = () => handleCountryClick(d);
@@ -185,16 +193,6 @@ export default function Home() {
           atmosphereAltitude={0.2}
         />
       </div>
-      
-      {/* Flag Mode Control */}
-      <GlobeFlagMode 
-        isEnabled={showFlags}
-        onToggle={() => {
-          setShowFlags(!showFlags);
-          setFlagDisplayMode(!showFlags ? 'both' : 'dots');
-        }}
-        selectedCountry={selectedCountry}
-      />
       
       {/* UI Overlay */}
       <div className="absolute inset-0 pointer-events-none">
