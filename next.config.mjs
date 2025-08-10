@@ -5,16 +5,13 @@ const nextConfig = {
   images: {
     domains: [],
     unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-    ],
+    // Removed overly permissive remote patterns for security
+    // Add specific domains if remote images are needed
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // ESLint should be enforced during builds for code quality
+  // eslint: {
+  //   ignoreDuringBuilds: true,
+  // },
 }
 
 export default nextConfig

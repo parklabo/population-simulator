@@ -39,57 +39,78 @@ export interface ProjectionResult {
   peakPopulation: number | null;
 }
 
+// Constants for demographic calculations
+const DEMOGRAPHIC_CONSTANTS = {
+  REPLACEMENT_RATE: 2.1,
+  GENERATION_LENGTH: 30,
+  WOMEN_CHILDBEARING_RATIO: 0.25, // Women aged 15-45
+  YOUTH_MORTALITY_RATE: 0.001,
+  WORKING_MORTALITY_RATE: 0.003,
+  ELDERLY_MORTALITY_RATE: 0.04,
+  YOUTH_TRANSITION_YEARS: 15,
+  WORKING_TRANSITION_YEARS: 50,
+  CRITICAL_BIRTHRATE_THRESHOLD: 1.5,
+  AGING_ACCELERATION_YEARS: 20,
+  MILLION: 1000000,
+  THOUSAND: 1000,
+} as const;
+
+// Custom error class for simulation errors
+export class SimulationError extends Error {
+  constructor(message: string, public readonly code: string) {
+    super(message);
+    this.name = 'SimulationError';
+  }
+}
+
 export class PopulationSimulator {
-  private readonly REPLACEMENT_RATE = 2.1;
-  private readonly GENERATION_LENGTH = 30;
+  private readonly constants = DEMOGRAPHIC_CONSTANTS;
+  
+  private validateParams(params: SimulationParams): void {
+    if (params.currentPopulation <= 0) {
+      throw new SimulationError('Current population must be positive', 'INVALID_POPULATION');
+    }
+    
+    if (params.birthRate < 0 || params.birthRate > 10) {
+      throw new SimulationError('Birth rate must be between 0 and 10', 'INVALID_BIRTH_RATE');
+    }
+    
+    if (params.lifeExpectancy < 20 || params.lifeExpectancy > 120) {
+      throw new SimulationError('Life expectancy must be between 20 and 120', 'INVALID_LIFE_EXPECTANCY');
+    }
+    
+    if (params.immigrationRate < -1000 || params.immigrationRate > 10000) {
+      throw new SimulationError('Immigration rate must be reasonable', 'INVALID_IMMIGRATION');
+    }
+    
+    if (params.ageStructure) {
+      const total = params.ageStructure.youth + params.ageStructure.working + params.ageStructure.elderly;
+      if (Math.abs(total - 100) > 0.1) {
+        throw new SimulationError('Age structure percentages must sum to 100', 'INVALID_AGE_STRUCTURE');
+      }
+    }
+  }
   
   simulate(params: SimulationParams, years: number = 100): ProjectionResult {
+    // Validate input parameters
+    this.validateParams(params);
+    
+    if (years < 0 || years > 500) {
+      throw new SimulationError('Simulation years must be between 0 and 500', 'INVALID_YEARS');
+    }
     const {
       currentPopulation,
       birthRate,
-      // lifeExpectancy, // Currently unused
       immigrationRate,
-      startYear = 2025
+      startYear = 2025,
+      ageStructure
     } = params;
     
     const data: PopulationData[] = [];
-    const initialPop = currentPopulation * 1000000; // Convert to actual numbers
+    const initialPop = currentPopulation * this.constants.MILLION;
     
-    // Initialize age structure - use UN data if available, otherwise estimate based on birth rate
-    let youthRatio: number;
-    let elderlyRatio: number;
-    let workingRatio: number;
-    
-    if (params.ageStructure) {
-      // Use actual UN data if provided
-      youthRatio = params.ageStructure.youth / 100;
-      workingRatio = params.ageStructure.working / 100;
-      elderlyRatio = params.ageStructure.elderly / 100;
-    } else {
-      // Fallback to birth rate estimation
-      if (birthRate < 1.0) {
-        // Extreme crisis (like Korea, Taiwan)
-        youthRatio = 0.11;  // 11% youth
-        elderlyRatio = 0.18; // 18% elderly
-      } else if (birthRate < 1.5) {
-        // Severe crisis (like Japan, Italy)
-        youthRatio = 0.13;  // 13% youth
-        elderlyRatio = 0.20; // 20% elderly
-      } else if (birthRate < 2.1) {
-        // Below replacement
-        youthRatio = 0.16;  // 16% youth
-        elderlyRatio = 0.15; // 15% elderly
-      } else if (birthRate < 3.0) {
-        // Near or above replacement
-        youthRatio = 0.20;  // 20% youth
-        elderlyRatio = 0.12; // 12% elderly
-      } else {
-        // High birth rate (developing countries)
-        youthRatio = 0.30;  // 30% youth
-        elderlyRatio = 0.08; // 8% elderly
-      }
-      workingRatio = 1 - youthRatio - elderlyRatio;
-    }
+    // Initialize age structure
+    const { youthRatio, workingRatio, elderlyRatio } = this.getAgeStructureRatios(birthRate, ageStructure);
     
     let youth = initialPop * youthRatio;
     let workingAge = initialPop * workingRatio;
@@ -105,91 +126,56 @@ export class PopulationSimulator {
       let totalPop = youth + workingAge + elderly;
       
       if (yearOffset > 0) {
-        // Calculate demographic changes
-        // const fertilityFactor = birthRate / this.REPLACEMENT_RATE; // Currently unused
-        // const generationsPassed = yearOffset / this.GENERATION_LENGTH; // Currently unused
+        // Calculate demographic changes for 5-year period
+        const demographics = this.calculateDemographicChanges(
+          { youth, workingAge, elderly },
+          birthRate,
+          immigrationRate,
+          yearOffset
+        );
         
-        // Birth calculations
-        const womenOfChildbearingAge = workingAge * 0.25; // Women aged 15-45 roughly
-        const annualBirths = (womenOfChildbearingAge * birthRate / 30) * 5; // 5-year period
-        
-        // Death calculations based on age structure and life expectancy
-        const youthMortality = youth * 0.001 * 5; // Very low youth mortality
-        const workingMortality = workingAge * 0.003 * 5; // Low working age mortality
-        // Elderly mortality based on life expectancy (higher but realistic)
-        const elderlyMortality = elderly * (0.04 * 5); // ~4% per year for elderly
-        // const totalDeaths = youthMortality + workingMortality + elderlyMortality; // Currently unused
-        
-        // Immigration effect (5-year total)
-        const immigrationEffect = immigrationRate * 1000 * 5;
-        
-        // Age transitions (5-year period)
-        // Youth to working: 1/3 of youth transition over 15 years, so 1/3 * 5/15 = 1/9 per 5 years
-        const youthToWorking = youth * (5.0 / 15.0); // 5 years out of 15 years of youth
-        // Working to elderly: transition from 15-64 to 65+, so over 50 years
-        const workingToElderly = workingAge * (5.0 / 50.0); // 5 years out of 50 years of working age
-        
-        // Update age groups
-        youth = youth + annualBirths - youthMortality - youthToWorking;
-        workingAge = workingAge + youthToWorking - workingMortality - workingToElderly + immigrationEffect * 0.7;
-        elderly = elderly + workingToElderly - elderlyMortality + immigrationEffect * 0.3;
-        
-        // Additional aging effect for low birth rate societies
-        if (birthRate < 1.5 && yearOffset > 20) {
-          // Accelerate aging in severe crisis countries after 20 years
-          const additionalAging = workingAge * 0.01 * Math.min((yearOffset - 20) / 50, 1);
-          workingAge = Math.max(0, workingAge - additionalAging);
-          elderly = elderly + additionalAging;
-        }
-        
-        // Ensure non-negative populations
-        youth = Math.max(0, youth);
-        workingAge = Math.max(0, workingAge);
-        elderly = Math.max(0, elderly);
+        youth = demographics.youth;
+        workingAge = demographics.workingAge;
+        elderly = demographics.elderly;
         
         totalPop = youth + workingAge + elderly;
       }
       
       // Calculate statistics
-      const totalPopInMillions = totalPop / 1000000;
-      const birthRatePerThousand = (birthRate * 15); // Rough conversion
-      const deathRate = elderly / totalPop * 30; // Simplified death rate
-      const naturalGrowthRate = birthRatePerThousand - deathRate;
-      const dependencyRatio = (youth + elderly) / Math.max(1, workingAge);
-      const medianAge = 30 + (elderly / totalPop) * 40; // Simplified median age
+      const stats = this.calculatePopulationStatistics(
+        { youth, workingAge, elderly, totalPop },
+        birthRate
+      );
       
       // Create population pyramid
       const populationPyramid = this.generatePyramid(youth, workingAge, elderly);
       
       data.push({
         year: currentYear,
-        totalPopulation: totalPopInMillions,
-        youth: youth / 1000000,
-        workingAge: workingAge / 1000000,
-        elderly: elderly / 1000000,
-        birthRate: birthRatePerThousand,
-        deathRate,
-        naturalGrowthRate,
-        dependencyRatio,
-        medianAge,
+        totalPopulation: stats.totalPopInMillions,
+        youth: youth / this.constants.MILLION,
+        workingAge: workingAge / this.constants.MILLION,
+        elderly: elderly / this.constants.MILLION,
+        birthRate: stats.birthRatePerThousand,
+        deathRate: stats.deathRate,
+        naturalGrowthRate: stats.naturalGrowthRate,
+        dependencyRatio: stats.dependencyRatio,
+        medianAge: stats.medianAge,
         populationPyramid
       });
       
-      // Track peak population
-      if (totalPopInMillions > peakPopulation) {
-        peakPopulation = totalPopInMillions;
-        peakYear = currentYear;
-      }
+      // Track milestones
+      const milestones = this.trackPopulationMilestones(
+        stats.totalPopInMillions,
+        currentPopulation,
+        currentYear,
+        { peakPopulation, peakYear, halfPoint, extinctionPoint }
+      );
       
-      // Check for half point
-      if (!halfPoint && totalPopInMillions <= currentPopulation / 2) {
-        halfPoint = currentYear;
-      }
-      
-      // Check for near-extinction (< 1 million)
-      if (!extinctionPoint && totalPopInMillions < 1) {
-        extinctionPoint = currentYear;
-      }
+      peakPopulation = milestones.peakPopulation;
+      peakYear = milestones.peakYear;
+      halfPoint = milestones.halfPoint;
+      extinctionPoint = milestones.extinctionPoint;
     }
     
     return {
@@ -199,6 +185,128 @@ export class PopulationSimulator {
       peakYear: peakYear === startYear ? null : peakYear,
       peakPopulation: peakPopulation === currentPopulation ? null : peakPopulation
     };
+  }
+  
+  private getAgeStructureRatios(birthRate: number, ageStructure?: SimulationParams['ageStructure']) {
+    if (ageStructure) {
+      return {
+        youthRatio: ageStructure.youth / 100,
+        workingRatio: ageStructure.working / 100,
+        elderlyRatio: ageStructure.elderly / 100
+      };
+    }
+    
+    // Estimate based on birth rate
+    let youthRatio: number;
+    let elderlyRatio: number;
+    
+    if (birthRate < 1.0) {
+      youthRatio = 0.11;
+      elderlyRatio = 0.18;
+    } else if (birthRate < 1.5) {
+      youthRatio = 0.13;
+      elderlyRatio = 0.20;
+    } else if (birthRate < 2.1) {
+      youthRatio = 0.16;
+      elderlyRatio = 0.15;
+    } else if (birthRate < 3.0) {
+      youthRatio = 0.20;
+      elderlyRatio = 0.12;
+    } else {
+      youthRatio = 0.30;
+      elderlyRatio = 0.08;
+    }
+    
+    return {
+      youthRatio,
+      workingRatio: 1 - youthRatio - elderlyRatio,
+      elderlyRatio
+    };
+  }
+  
+  private calculateDemographicChanges(
+    population: { youth: number; workingAge: number; elderly: number },
+    birthRate: number,
+    immigrationRate: number,
+    yearOffset: number
+  ) {
+    const { youth, workingAge, elderly } = population;
+    const PERIOD_YEARS = 5;
+    
+    // Birth calculations
+    const womenOfChildbearingAge = workingAge * this.constants.WOMEN_CHILDBEARING_RATIO;
+    const annualBirths = (womenOfChildbearingAge * birthRate / this.constants.GENERATION_LENGTH) * PERIOD_YEARS;
+    
+    // Mortality calculations
+    const youthMortality = youth * this.constants.YOUTH_MORTALITY_RATE * PERIOD_YEARS;
+    const workingMortality = workingAge * this.constants.WORKING_MORTALITY_RATE * PERIOD_YEARS;
+    const elderlyMortality = elderly * this.constants.ELDERLY_MORTALITY_RATE * PERIOD_YEARS;
+    
+    // Immigration
+    const immigrationEffect = immigrationRate * this.constants.THOUSAND * PERIOD_YEARS;
+    
+    // Age transitions
+    const youthToWorking = youth * (PERIOD_YEARS / this.constants.YOUTH_TRANSITION_YEARS);
+    const workingToElderly = workingAge * (PERIOD_YEARS / this.constants.WORKING_TRANSITION_YEARS);
+    
+    // Update populations
+    const newYouth = youth + annualBirths - youthMortality - youthToWorking;
+    let newWorkingAge = workingAge + youthToWorking - workingMortality - workingToElderly + immigrationEffect * 0.7;
+    let newElderly = elderly + workingToElderly - elderlyMortality + immigrationEffect * 0.3;
+    
+    // Additional aging effect for low birth rate societies
+    if (birthRate < this.constants.CRITICAL_BIRTHRATE_THRESHOLD && yearOffset > this.constants.AGING_ACCELERATION_YEARS) {
+      const agingFactor = Math.min((yearOffset - this.constants.AGING_ACCELERATION_YEARS) / 50, 1);
+      const additionalAging = newWorkingAge * 0.01 * agingFactor;
+      newWorkingAge -= additionalAging;
+      newElderly += additionalAging;
+    }
+    
+    return {
+      youth: Math.max(0, newYouth),
+      workingAge: Math.max(0, newWorkingAge),
+      elderly: Math.max(0, newElderly)
+    };
+  }
+  
+  private calculatePopulationStatistics(
+    population: { youth: number; workingAge: number; elderly: number; totalPop: number },
+    birthRate: number
+  ) {
+    const { youth, workingAge, elderly, totalPop } = population;
+    
+    return {
+      totalPopInMillions: totalPop / this.constants.MILLION,
+      birthRatePerThousand: birthRate * 15,
+      deathRate: (elderly / Math.max(1, totalPop)) * 30,
+      naturalGrowthRate: (birthRate * 15) - ((elderly / Math.max(1, totalPop)) * 30),
+      dependencyRatio: (youth + elderly) / Math.max(1, workingAge),
+      medianAge: 30 + (elderly / Math.max(1, totalPop)) * 40
+    };
+  }
+  
+  private trackPopulationMilestones(
+    totalPopInMillions: number,
+    currentPopulation: number,
+    currentYear: number,
+    milestones: { peakPopulation: number; peakYear: number; halfPoint: number | null; extinctionPoint: number | null }
+  ) {
+    const updated = { ...milestones };
+    
+    if (totalPopInMillions > updated.peakPopulation) {
+      updated.peakPopulation = totalPopInMillions;
+      updated.peakYear = currentYear;
+    }
+    
+    if (!updated.halfPoint && totalPopInMillions <= currentPopulation / 2) {
+      updated.halfPoint = currentYear;
+    }
+    
+    if (!updated.extinctionPoint && totalPopInMillions < 1) {
+      updated.extinctionPoint = currentYear;
+    }
+    
+    return updated;
   }
   
   private generatePyramid(youth: number, workingAge: number, elderly: number): AgeGroup[] {

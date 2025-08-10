@@ -8,6 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "analyze": "ANALYZE=true next build",
+    "clean": "rm -rf .next node_modules",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["population", "simulation", "demographics", "visualization"],

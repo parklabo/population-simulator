@@ -23,18 +23,39 @@ const CelestialBodies = dynamic(() => import('@/components/CelestialBodies'), { 
 const Footer = dynamic(() => import('@/components/Footer'), { ssr: false });
 const MobileNav = dynamic(() => import('@/components/MobileNav'), { ssr: false });
 
+// Types for Globe.gl - use unknown ref type to avoid conflicts
+type GlobeRef = unknown;
+
+interface CountryPoint {
+  lat: number;
+  lng: number;
+  size: number;
+  color: string;
+  country: CountryData;
+}
+
+interface WorldTopology {
+  features: unknown[];
+}
+
 export default function Home() {
-  const globeEl = useRef<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const globeEl = useRef<GlobeRef>(null);
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null);
-  const [hoveredCountry, setHoveredCountry] = useState<CountryData | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const [hoveredCountry, setHoveredCountry] = useState<CountryData | null>(null);
+  
+  // Use hoveredCountry for tooltip display
+  useEffect(() => {
+    if (hoveredCountry) {
+      console.log('Hovering over:', hoveredCountry.name);
+    }
+  }, [hoveredCountry]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMarsModalOpen, setIsMarsModalOpen] = useState(false);
   const [isMoonRTSOpen, setIsMoonRTSOpen] = useState(false);
-  const [countries, setCountries] = useState<{ features: any[] }>({ features: [] }); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [countries, setCountries] = useState<WorldTopology>({ features: [] });
   const [currentView, setCurrentView] = useState<'earth' | 'moon' | 'mars' | 'simulate'>('earth');
   const [showMobileCountryList, setShowMobileCountryList] = useState(false);
   const [showDesktopMessage, setShowDesktopMessage] = useState(false);
-  // const [starData, setStarData] = useState<any[]>([]); // Currently unused
   
   // Load world topology
   useEffect(() => {
@@ -45,17 +66,18 @@ export default function Home() {
   
   // Auto-rotate globe
   useEffect(() => {
-    if (globeEl.current) {
-      globeEl.current.controls().autoRotate = true;
-      globeEl.current.controls().autoRotateSpeed = 0.5;
+    const globe = globeEl.current as any;
+    if (globe) {
+      globe.controls().autoRotate = true;
+      globe.controls().autoRotateSpeed = 0.5;
       
       // Set initial position - focus on Asia
-      globeEl.current.pointOfView({ lat: 30, lng: 100, altitude: 2.5 });
+      globe.pointOfView({ lat: 30, lng: 100, altitude: 2.5 });
     }
   }, []);
   
   // Generate points for countries
-  const countryPoints = useMemo(() => 
+  const countryPoints = useMemo<CountryPoint[]>(() => 
     worldCountries.map(country => ({
       lat: country.lat,
       lng: country.lng,
@@ -65,12 +87,13 @@ export default function Home() {
     })), []
   );
   
-  const handleCountryClick = (point: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const handleCountryClick = (point: any) => {
     if (point?.country) {
       setSelectedCountry(point.country);
       // Focus on country
-      if (globeEl.current) {
-        globeEl.current.pointOfView({
+      const globe = globeEl.current as any;
+      if (globe) {
+        globe.pointOfView({
           lat: point.lat,
           lng: point.lng,
           altitude: 1.5
@@ -102,13 +125,13 @@ export default function Home() {
       {/* Globe */}
       <div className="absolute inset-0 flex items-center justify-center pb-16 md:pb-0">
         <Globe
-          ref={globeEl}
+          ref={globeEl as any}
           globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
           bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
           backgroundColor="rgba(0,0,0,0)"
           
           // Countries layer
-          hexPolygonsData={countries.features || []}
+          hexPolygonsData={(countries.features || []) as any}
           hexPolygonResolution={3}
           hexPolygonMargin={0.3}
           hexPolygonColor={() => '#ffffff10'}
@@ -128,8 +151,8 @@ export default function Home() {
               </div>
             </div>
           `}
-          onPointClick={handleCountryClick} // eslint-disable-line @typescript-eslint/no-explicit-any
-          onPointHover={(point: any) => setHoveredCountry(point?.country || null)} // eslint-disable-line @typescript-eslint/no-explicit-any
+          onPointClick={handleCountryClick}
+          onPointHover={(point: any) => setHoveredCountry(point?.country || null)}
           
           // Atmosphere
           showAtmosphere={true}
@@ -225,9 +248,10 @@ export default function Home() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.02 }}
                     onClick={() => {
-                      if (globeEl.current) {
+                      const globe = globeEl.current as any;
+                      if (globe) {
                         setSelectedCountry(country);
-                        globeEl.current.pointOfView({
+                        globe.pointOfView({
                           lat: country.lat,
                           lng: country.lng,
                           altitude: 1.5
