@@ -13,8 +13,6 @@ const nextConfig = {
     // Remove console logs in production
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // Optimize for production
-  swcMinify: true,
   // Compress output
   compress: true,
   // ESLint should be enforced during builds for code quality

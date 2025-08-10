@@ -13,6 +13,7 @@ interface MobileNavProps {
 export default function MobileNav({ 
   onEarthClick,
   onMoonClick, 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onMarsClick,
   currentView 
 }: MobileNavProps) {

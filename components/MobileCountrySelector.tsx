@@ -83,12 +83,6 @@ export default function MobileCountrySelector({
     return 'text-green-400';
   };
 
-  const getCrisisBgColor = (birthRate: number) => {
-    if (birthRate < 1.0) return 'bg-red-500/10 border-red-500/30';
-    if (birthRate < 1.5) return 'bg-orange-500/10 border-orange-500/30';
-    if (birthRate < 2.1) return 'bg-yellow-500/10 border-yellow-500/30';
-    return 'bg-green-500/10 border-green-500/30';
-  };
 
   if (!isOpen) return null;
 
@@ -144,7 +138,7 @@ export default function MobileCountrySelector({
                 ].map(region => (
                   <button
                     key={region.value}
-                    onClick={() => setSelectedRegion(region.value as any)}
+                    onClick={() => setSelectedRegion(region.value as 'all' | 'asia' | 'europe' | 'americas' | 'africa' | 'oceania')}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                       selectedRegion === region.value
                         ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25'

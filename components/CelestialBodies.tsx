@@ -9,6 +9,7 @@ interface CelestialBodiesProps {
   onMoonClick: () => void;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function CelestialBodies({ onMoonClick, onMarsClick }: CelestialBodiesProps) {
   const [showMarsToast, setShowMarsToast] = useState(false);
   return (
