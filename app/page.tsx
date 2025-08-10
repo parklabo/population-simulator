@@ -66,6 +66,7 @@ export default function Home() {
   
   // Auto-rotate globe
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const globe = globeEl.current as any;
     if (globe) {
       globe.controls().autoRotate = true;
@@ -87,10 +88,12 @@ export default function Home() {
     })), []
   );
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleCountryClick = (point: any) => {
     if (point?.country) {
       setSelectedCountry(point.country);
       // Focus on country
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const globe = globeEl.current as any;
       if (globe) {
         globe.pointOfView({
@@ -125,12 +128,14 @@ export default function Home() {
       {/* Globe */}
       <div className="absolute inset-0 flex items-center justify-center pb-16 md:pb-0">
         <Globe
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ref={globeEl as any}
           globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
           bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
           backgroundColor="rgba(0,0,0,0)"
           
           // Countries layer
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           hexPolygonsData={(countries.features || []) as any}
           hexPolygonResolution={3}
           hexPolygonMargin={0.3}
@@ -152,6 +157,7 @@ export default function Home() {
             </div>
           `}
           onPointClick={handleCountryClick}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onPointHover={(point: any) => setHoveredCountry(point?.country || null)}
           
           // Atmosphere
@@ -248,6 +254,7 @@ export default function Home() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.02 }}
                     onClick={() => {
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       const globe = globeEl.current as any;
                       if (globe) {
                         setSelectedCountry(country);
