@@ -225,7 +225,6 @@ export default function Home() {
               <span className="text-2xl">🌍</span>
               Global Birth Crisis
             </h3>
-            <p className="text-gray-400 text-xs mt-1">Real-time demographic data</p>
           </div>
           
           {/* Crisis Indicators */}
