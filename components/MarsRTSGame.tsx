@@ -174,15 +174,19 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
     }
   };
 
-  // Game loop
+  // Game loop - optimized for performance
   useEffect(() => {
     if (!isPaused && isOpen && gameStarted) {
+      // Use longer interval on mobile devices for better performance
+      const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+      const updateInterval = isMobile ? 2000 : 1000; // 2 seconds on mobile, 1 second on desktop
+      
       const interval = setInterval(() => {
         setGameTime(prev => prev + 1);
         
         const difficultyMods = getDifficultyMultipliers();
         
-        // Resource gathering (based on worker count)
+        // Resource gathering (based on worker count) - optimized counting
         const terranWorkers = terranUnits.filter(u => u.type === 'scv').length;
         const zergWorkers = zergUnits.filter(u => u.type === 'drone').length;
         
@@ -224,7 +228,8 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
         }));
         
         // ZERG AI - Auto produce units (AGGRESSIVE SWARM STRATEGY)
-        if (gameTime % 2 === 0) { // Every 2 seconds - faster decision making
+        const aiDecisionFrequency = isMobile ? 4 : 2; // Slower AI on mobile
+        if (gameTime % aiDecisionFrequency === 0) { // Every 2-4 seconds based on device
           // Check current state
           const drones = zergUnits.filter(u => u.type === 'drone').length;
           // const zerglings = zergUnits.filter(u => u.type === 'zergling').length;

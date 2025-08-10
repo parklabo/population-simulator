@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
 interface Star {
@@ -23,57 +23,77 @@ interface ShootingStar {
 }
 
 export default function StarField() {
-  const [stars, setStars] = useState<Star[]>([]);
   const [shootingStars, setShootingStars] = useState<ShootingStar[]>([]);
-  const [nebulas, setNebulas] = useState<{ id: number; x: number; y: number; color: string; size: number }[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Detect mobile for performance optimization
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Generate stars only once and memoize
+  const stars = useMemo(() => {
+    // Reduce star count on mobile
+    const layers = isMobile ? [
+      { count: 50, sizeRange: [1, 2], opacityRange: [0.3, 0.6], durationRange: [4, 8] }, // Far stars
+      { count: 30, sizeRange: [2, 3], opacityRange: [0.5, 0.8], durationRange: [3, 6] }, // Mid stars
+      { count: 20, sizeRange: [3, 4], opacityRange: [0.7, 1], durationRange: [2, 4] },  // Near stars
+    ] : [
+      { count: 150, sizeRange: [1, 2], opacityRange: [0.3, 0.6], durationRange: [3, 6] }, // Far stars
+      { count: 100, sizeRange: [2, 3], opacityRange: [0.5, 0.8], durationRange: [2, 4] }, // Mid stars
+      { count: 50, sizeRange: [3, 4], opacityRange: [0.7, 1], durationRange: [1.5, 3] },  // Near stars
+    ];
+    
+    const allStars: Star[] = [];
+    let id = 0;
+    
+    layers.forEach(layer => {
+      for (let i = 0; i < layer.count; i++) {
+        allStars.push({
+          id: id++,
+          x: Math.random() * 100,
+          y: Math.random() * 100,
+          size: layer.sizeRange[0] + Math.random() * (layer.sizeRange[1] - layer.sizeRange[0]),
+          opacity: layer.opacityRange[0] + Math.random() * (layer.opacityRange[1] - layer.opacityRange[0]),
+          duration: layer.durationRange[0] + Math.random() * (layer.durationRange[1] - layer.durationRange[0]),
+          delay: Math.random() * 5
+        });
+      }
+    });
+    
+    return allStars;
+  }, [isMobile]);
+  
+  // Simplified nebulas - static on mobile
+  const nebulas = useMemo(() => {
+    if (isMobile) {
+      // Only one nebula on mobile
+      return [
+        { id: 1, x: 50, y: 50, color: 'purple', size: 300 }
+      ];
+    }
+    return [
+      { id: 1, x: 20, y: 30, color: 'purple', size: 400 },
+      { id: 2, x: 70, y: 60, color: 'blue', size: 300 },
+      { id: 3, x: 40, y: 80, color: 'pink', size: 350 },
+    ];
+  }, [isMobile]);
   
   useEffect(() => {
-    // Generate multiple layers of stars for depth
-    const generateStars = () => {
-      const layers = [
-        { count: 150, sizeRange: [1, 2], opacityRange: [0.3, 0.6], durationRange: [3, 6] }, // Far stars
-        { count: 100, sizeRange: [2, 3], opacityRange: [0.5, 0.8], durationRange: [2, 4] }, // Mid stars
-        { count: 50, sizeRange: [3, 4], opacityRange: [0.7, 1], durationRange: [1.5, 3] },  // Near stars
-      ];
-      
-      const allStars: Star[] = [];
-      let id = 0;
-      
-      layers.forEach(layer => {
-        for (let i = 0; i < layer.count; i++) {
-          allStars.push({
-            id: id++,
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            size: layer.sizeRange[0] + Math.random() * (layer.sizeRange[1] - layer.sizeRange[0]),
-            opacity: layer.opacityRange[0] + Math.random() * (layer.opacityRange[1] - layer.opacityRange[0]),
-            duration: layer.durationRange[0] + Math.random() * (layer.durationRange[1] - layer.durationRange[0]),
-            delay: Math.random() * 5
-          });
-        }
-      });
-      
-      return allStars;
-    };
+    // Disable shooting stars on mobile
+    if (isMobile) return;
     
-    // Generate nebula clouds
-    const generateNebulas = () => {
-      return [
-        { id: 1, x: 20, y: 30, color: 'purple', size: 400 },
-        { id: 2, x: 70, y: 60, color: 'blue', size: 300 },
-        { id: 3, x: 40, y: 80, color: 'pink', size: 350 },
-      ];
-    };
-    
-    setStars(generateStars());
-    setNebulas(generateNebulas());
-    
-    // Create shooting stars periodically
+    // Create shooting stars less frequently
     const shootingStarInterval = setInterval(() => {
       const id = Date.now();
       const startX = Math.random() * 100;
       const startY = Math.random() * 50;
-      const angle = 30 + Math.random() * 30; // 30-60 degree angle
+      const angle = 30 + Math.random() * 30;
       const distance = 20 + Math.random() * 30;
       
       const newShootingStar: ShootingStar = {
@@ -91,19 +111,19 @@ export default function StarField() {
       setTimeout(() => {
         setShootingStars(prev => prev.filter(s => s.id !== id));
       }, (newShootingStar.duration + 0.5) * 1000);
-    }, 3000 + Math.random() * 4000);
+    }, 5000 + Math.random() * 5000); // Less frequent: 5-10 seconds
     
     return () => clearInterval(shootingStarInterval);
-  }, []);
+  }, [isMobile]);
   
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none">
       {/* Deep space gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-900/50 to-black" />
       
-      {/* Nebula clouds for depth */}
+      {/* Nebula clouds - simplified animation on mobile */}
       {nebulas.map(nebula => (
-        <motion.div
+        <div
           key={nebula.id}
           className={`absolute rounded-full blur-3xl ${
             nebula.color === 'purple' ? 'bg-purple-600/10' :
@@ -117,46 +137,59 @@ export default function StarField() {
             height: nebula.size,
             transform: 'translate(-50%, -50%)'
           }}
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.1, 0.2, 0.1],
-          }}
-          transition={{
-            duration: 10 + Math.random() * 5,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
         />
       ))}
       
-      {/* Animated stars */}
-      {stars.map(star => (
-        <motion.div
-          key={star.id}
-          className="absolute rounded-full"
-          style={{
-            left: `${star.x}%`,
-            top: `${star.y}%`,
-            width: star.size,
-            height: star.size,
-            background: `radial-gradient(circle, rgba(255,255,255,${star.opacity}) 0%, transparent 70%)`,
-            boxShadow: `0 0 ${star.size * 2}px rgba(255,255,255,${star.opacity * 0.5})`
-          }}
-          animate={{
-            opacity: [star.opacity * 0.3, star.opacity, star.opacity * 0.3],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: star.duration,
-            delay: star.delay,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      ))}
+      {/* Use CSS animations for stars instead of Framer Motion on mobile */}
+      {isMobile ? (
+        // Simple CSS animated stars for mobile
+        <div className="absolute inset-0">
+          {stars.map(star => (
+            <div
+              key={star.id}
+              className="absolute rounded-full animate-pulse"
+              style={{
+                left: `${star.x}%`,
+                top: `${star.y}%`,
+                width: star.size,
+                height: star.size,
+                backgroundColor: `rgba(255, 255, 255, ${star.opacity})`,
+                animationDelay: `${star.delay}s`,
+                animationDuration: `${star.duration}s`
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        // Framer Motion stars for desktop
+        stars.map(star => (
+          <motion.div
+            key={star.id}
+            className="absolute rounded-full"
+            style={{
+              left: `${star.x}%`,
+              top: `${star.y}%`,
+              width: star.size,
+              height: star.size,
+              background: `radial-gradient(circle, rgba(255,255,255,${star.opacity}) 0%, transparent 70%)`,
+              boxShadow: `0 0 ${star.size * 2}px rgba(255,255,255,${star.opacity * 0.5})`
+            }}
+            animate={{
+              opacity: [star.opacity * 0.3, star.opacity, star.opacity * 0.3],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: star.duration,
+              delay: star.delay,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+        ))
+      )}
       
-      {/* Shooting stars */}
-      {shootingStars.map(shootingStar => (
+      {/* Shooting stars - desktop only */}
+      {!isMobile && shootingStars.map(shootingStar => (
         <motion.div
           key={shootingStar.id}
           className="absolute"
@@ -176,9 +209,7 @@ export default function StarField() {
           }}
         >
           <div className="relative">
-            {/* Star head */}
             <div className="w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white]" />
-            {/* Star tail */}
             <div 
               className="absolute top-0 left-0 w-20 h-[1px] bg-gradient-to-r from-white to-transparent"
               style={{
@@ -193,30 +224,7 @@ export default function StarField() {
         </motion.div>
       ))}
       
-      
-      {/* Constellation lines (subtle) */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none">
-        <motion.g
-          animate={{
-            opacity: [0.1, 0.3, 0.1]
-          }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        >
-          <line x1="10%" y1="20%" x2="15%" y2="25%" stroke="white" strokeWidth="0.5" opacity="0.3" />
-          <line x1="15%" y1="25%" x2="18%" y2="22%" stroke="white" strokeWidth="0.5" opacity="0.3" />
-          <line x1="18%" y1="22%" x2="22%" y2="28%" stroke="white" strokeWidth="0.5" opacity="0.3" />
-          
-          <line x1="70%" y1="15%" x2="75%" y2="18%" stroke="white" strokeWidth="0.5" opacity="0.3" />
-          <line x1="75%" y1="18%" x2="73%" y2="23%" stroke="white" strokeWidth="0.5" opacity="0.3" />
-          <line x1="73%" y1="23%" x2="78%" y2="25%" stroke="white" strokeWidth="0.5" opacity="0.3" />
-        </motion.g>
-      </svg>
-      
-      {/* Milky way band */}
+      {/* Milky way band - static, no animation */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-transparent via-white/5 to-transparent transform rotate-12" />
       </div>

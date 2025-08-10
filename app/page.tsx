@@ -62,7 +62,7 @@ export default function Home() {
   const [performanceMode] = useState(() => {
     // Auto-detect performance mode based on device
     if (typeof window !== 'undefined') {
-      return window.innerWidth < 768; // Enable on mobile for better performance
+      return window.innerWidth < 768 || 'ontouchstart' in window; // Enable on mobile/touch devices
     }
     return false;
   });
@@ -74,18 +74,19 @@ export default function Home() {
       .then(setCountries);
   }, []);
   
-  // Auto-rotate globe
+  // Auto-rotate globe - disable on mobile for performance
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const globe = globeEl.current as any;
     if (globe) {
-      globe.controls().autoRotate = true;
-      globe.controls().autoRotateSpeed = 0.5;
+      // Slower rotation on mobile
+      globe.controls().autoRotate = !performanceMode;
+      globe.controls().autoRotateSpeed = performanceMode ? 0 : 0.5;
       
       // Set initial position - focus on Asia
       globe.pointOfView({ lat: 30, lng: 100, altitude: 2.5 });
     }
-  }, []);
+  }, [performanceMode]);
   
   // Generate points for countries (filter based on performance mode)
   const countryPoints = useMemo<CountryPoint[]>(() => {
@@ -106,7 +107,7 @@ export default function Home() {
   const handleCountryClick = (point: any) => {
     if (point?.country) {
       setSelectedCountry(point.country);
-      // Focus on country
+      // Focus on country - slower animation on mobile
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const globe = globeEl.current as any;
       if (globe) {
@@ -114,7 +115,7 @@ export default function Home() {
           lat: point.lat,
           lng: point.lng,
           altitude: 1.5
-        }, 1000);
+        }, performanceMode ? 500 : 1000); // Faster transition on mobile
       }
     }
   };
@@ -174,11 +175,11 @@ export default function Home() {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onPointHover={(point: any) => setHoveredCountry(point?.country || null)}
           
-          // HTML Elements for flags (always show in 'both' mode)
+          // HTML Elements for flags - disable on mobile for performance
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          htmlElementsData={countryPoints}
+          htmlElementsData={performanceMode ? [] : countryPoints}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          htmlElement={(d: any) => {
+          htmlElement={performanceMode ? undefined : (d: any) => {
             const el = document.createElement('div');
             el.innerHTML = createFlagElement(d.country, 'medium');
             el.style.pointerEvents = 'none';
