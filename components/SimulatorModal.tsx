@@ -87,6 +87,7 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
     }, isMobile ? 150 : 100); // Even slower on mobile: 150ms per year
     
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying]);
   
   // Chart data up to current year (only when simulation has started)

@@ -196,8 +196,8 @@ export default function Home() {
             ? countryPoints.filter((point) => {
                 // On mobile, show flags for critical countries and major countries
                 return point.country.birthRate < 1.5 || // Critical birth rate countries
-                       point.country.population > 50 || // Major population countries
-                       ['JP', 'KR', 'CN', 'US', 'TW', 'SG', 'HK', 'AU', 'NZ', 'GB', 'DE', 'FR', 'IT', 'ES', 'CA', 'BR', 'IN'].includes(point.country.id); // Key countries
+                       point.country.population > 40 || // Lower threshold for major countries
+                       ['JP', 'KR', 'CN', 'US', 'TW', 'SG', 'HK', 'AU', 'NZ', 'GB', 'DE', 'FR', 'IT', 'ES', 'CA', 'BR', 'IN', 'NG', 'EG', 'ZA', 'KE', 'MX', 'ID', 'PK', 'BD', 'RU', 'AR', 'CO', 'ET'].includes(point.country.id); // Key countries
               })
             : countryPoints
           }

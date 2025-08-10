@@ -179,6 +179,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
     if (!isPaused && isOpen && gameStarted) {
       // Use longer interval on mobile devices for better performance
       const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const updateInterval = isMobile ? 2000 : 1000; // 2 seconds on mobile, 1 second on desktop
       
       const interval = setInterval(() => {
@@ -488,6 +489,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
       
       return () => clearInterval(interval);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaused, isOpen, gameSpeed, terranUnits, zergUnits, zergResources, gameTime, gameWinner, gameStarted, difficulty]);
   
   // Create a new unit
