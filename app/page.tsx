@@ -23,6 +23,7 @@ const StarField = dynamic(() => import('@/components/StarField'), { ssr: false }
 const CelestialBodies = dynamic(() => import('@/components/CelestialBodies'), { ssr: false });
 const Footer = dynamic(() => import('@/components/Footer'), { ssr: false });
 const MobileNav = dynamic(() => import('@/components/MobileNav'), { ssr: false });
+const MobileCountrySelector = dynamic(() => import('@/components/MobileCountrySelector'), { ssr: false });
 
 // Types for Globe.gl - use unknown ref type to avoid conflicts
 type GlobeRef = unknown;
@@ -54,9 +55,10 @@ export default function Home() {
   const [isMarsModalOpen, setIsMarsModalOpen] = useState(false);
   const [isMoonRTSOpen, setIsMoonRTSOpen] = useState(false);
   const [countries, setCountries] = useState<WorldTopology>({ features: [] });
-  const [currentView, setCurrentView] = useState<'earth' | 'moon' | 'mars' | 'simulate'>('earth');
+  const [currentView, setCurrentView] = useState<'earth' | 'moon' | 'mars'>('earth');
   const [showMobileCountryList, setShowMobileCountryList] = useState(false);
   const [showDesktopMessage, setShowDesktopMessage] = useState(false);
+  const [showMobileCountrySelector, setShowMobileCountrySelector] = useState(false);
   
   // Performance mode - Auto-detect based on device
   const [performanceMode] = useState(() => {
@@ -83,8 +85,18 @@ export default function Home() {
       globe.controls().autoRotate = !performanceMode;
       globe.controls().autoRotateSpeed = performanceMode ? 0 : 0.5;
       
+      // Enable better touch controls on mobile
+      if (performanceMode) {
+        globe.controls().enableZoom = true;
+        globe.controls().zoomSpeed = 1.5;
+        globe.controls().rotateSpeed = 0.5;
+        // Allow closer zoom on mobile
+        globe.controls().minDistance = 150;
+        globe.controls().maxDistance = 500;
+      }
+      
       // Set initial position - focus on Asia
-      globe.pointOfView({ lat: 30, lng: 100, altitude: 2.5 });
+      globe.pointOfView({ lat: 30, lng: 100, altitude: performanceMode ? 2.0 : 2.5 });
     }
   }, [performanceMode]);
   
@@ -97,7 +109,10 @@ export default function Home() {
     return countries.map(country => ({
       lat: country.lat,
       lng: country.lng,
-      size: Math.max(0.1, Math.log(country.population) / 10),
+      // Larger touch targets on mobile
+      size: performanceMode 
+        ? Math.max(0.3, Math.log(country.population) / 8) // Bigger dots on mobile
+        : Math.max(0.1, Math.log(country.population) / 10),
       color: getCountryColor(country.birthRate),
       country: country
     }));
@@ -175,14 +190,19 @@ export default function Home() {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onPointHover={(point: any) => setHoveredCountry(point?.country || null)}
           
-          // HTML Elements for flags - disable on mobile for performance
+          // HTML Elements for flags - show on all devices with optimization
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          htmlElementsData={performanceMode ? [] : countryPoints}
+          htmlElementsData={performanceMode 
+            ? countryPoints.filter((_, index) => index % 2 === 0) // Show every other flag on mobile
+            : countryPoints
+          }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          htmlElement={performanceMode ? undefined : (d: any) => {
+          htmlElement={(d: any) => {
             const el = document.createElement('div');
-            el.innerHTML = createFlagElement(d.country, 'medium');
-            el.style.pointerEvents = 'none';
+            // Use smaller flags on mobile for better performance
+            el.innerHTML = createFlagElement(d.country, performanceMode ? 'small' : 'medium');
+            el.style.pointerEvents = 'auto'; // Enable touch on flags
+            el.style.cursor = 'pointer';
             // Add click handler
             el.onclick = () => handleCountryClick(d);
             return el;
@@ -346,7 +366,7 @@ export default function Home() {
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 50 }}
-              className="fixed sm:absolute bottom-20 sm:top-32 left-4 right-4 sm:right-8 sm:left-auto bg-gradient-to-br from-black/60 via-gray-900/50 to-black/60 backdrop-blur-md rounded-2xl border border-white/5 shadow-2xl pointer-events-auto sm:w-96 z-30 max-h-[60vh] sm:max-h-none overflow-hidden"
+              className="fixed sm:absolute bottom-20 sm:top-32 left-4 right-4 sm:right-8 sm:left-auto bg-gradient-to-br from-black/60 via-gray-900/50 to-black/60 backdrop-blur-md rounded-2xl border border-white/5 shadow-2xl pointer-events-auto sm:w-96 z-30 overflow-hidden"
             >
               {/* Header with Gradient - Matching left panel style */}
               <div className="bg-gradient-to-r from-cyan-600/20 to-blue-600/20 p-4 border-b border-white/10">
@@ -368,22 +388,22 @@ export default function Home() {
               </div>
               
               {/* Content Area */}
-              <div className="p-4 max-h-[calc(60vh-8rem)] sm:max-h-none overflow-y-auto custom-scrollbar">
+              <div className="p-4">
                 <div className="space-y-4">
                   {/* Stats Grid - Updated with consistent styling */}
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-white/5 border border-white/10 rounded-lg p-3">
-                      <p className="text-gray-400 text-xs mb-1">Population</p>
-                      <p className="text-2xl font-bold text-white">{selectedCountry.population.toFixed(1)}M</p>
+                    <div className="bg-white/5 border border-white/10 rounded-lg p-2.5">
+                      <p className="text-gray-400 text-xs">Population</p>
+                      <p className="text-xl font-bold text-white">{selectedCountry.population.toFixed(1)}M</p>
                     </div>
-                    <div className={`border rounded-lg p-3 ${
+                    <div className={`border rounded-lg p-2.5 ${
                       selectedCountry.birthRate < 1.0 ? 'bg-red-500/10 border-red-500/20' :
                       selectedCountry.birthRate < 1.5 ? 'bg-orange-500/10 border-orange-500/20' :
                       selectedCountry.birthRate < 2.1 ? 'bg-yellow-500/10 border-yellow-500/20' :
                       'bg-green-500/10 border-green-500/20'
                     }`}>
-                      <p className="text-gray-400 text-xs mb-1">Birth Rate</p>
-                      <p className={`text-2xl font-bold ${
+                      <p className="text-gray-400 text-xs">Birth Rate</p>
+                      <p className={`text-xl font-bold ${
                         selectedCountry.birthRate < 1.0 ? 'text-red-400' : 
                         selectedCountry.birthRate < 1.5 ? 'text-orange-400' : 
                         selectedCountry.birthRate < 2.1 ? 'text-yellow-400' : 
@@ -392,11 +412,11 @@ export default function Home() {
                         {selectedCountry.birthRate}
                       </p>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-lg p-3">
-                      <p className="text-gray-400 text-xs mb-1">Life Expectancy</p>
-                      <p className="text-2xl font-bold text-blue-400">{selectedCountry.lifeExpectancy}</p>
+                    <div className="bg-white/5 border border-white/10 rounded-lg p-2.5">
+                      <p className="text-gray-400 text-xs">Life Expectancy</p>
+                      <p className="text-xl font-bold text-blue-400">{selectedCountry.lifeExpectancy}</p>
                     </div>
-                    <div className={`border rounded-lg p-3 ${
+                    <div className={`border rounded-lg p-2.5 ${
                       getCrisisLevel(selectedCountry.birthRate) === 'EXTREME' ? 'bg-red-500/10 border-red-500/20' :
                       getCrisisLevel(selectedCountry.birthRate) === 'SEVERE' ? 'bg-orange-500/10 border-orange-500/20' :
                       getCrisisLevel(selectedCountry.birthRate) === 'CRITICAL' ? 'bg-yellow-500/10 border-yellow-500/20' :
@@ -418,16 +438,16 @@ export default function Home() {
                           {getCrisisLevel(selectedCountry.birthRate)}
                         </span>
                       </div>
-                      <p className="text-gray-400 text-xs mt-1">Crisis Level</p>
+                      <p className="text-gray-400 text-xs">Crisis Level</p>
                     </div>
                   </div>
                   
                   {/* Warning Message - Consistent with left panel */}
                   {selectedCountry.birthRate < 2.1 && (
-                    <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                      <p className="text-red-400 text-sm flex items-start gap-2">
-                        <span>⚠️</span>
-                        <span>Birth rate below replacement level. Population decline expected without intervention.</span>
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2">
+                      <p className="text-red-400 text-xs flex items-center gap-1.5">
+                        <span className="text-sm">⚠️</span>
+                        <span>Birth rate below replacement level</span>
                       </p>
                     </div>
                   )}
@@ -576,24 +596,41 @@ export default function Home() {
         )}
       </AnimatePresence>
 
+      {/* Mobile Country Selector - New improved UI */}
+      <MobileCountrySelector
+        isOpen={showMobileCountrySelector}
+        onClose={() => setShowMobileCountrySelector(false)}
+        selectedCountry={selectedCountry}
+        onSelectCountry={(country) => {
+          setSelectedCountry(country);
+          // Focus on the selected country on the globe
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const globe = globeEl.current as any;
+          if (globe) {
+            globe.pointOfView({
+              lat: country.lat,
+              lng: country.lng,
+              altitude: 1.5
+            }, 500);
+          }
+        }}
+      />
+
       {/* Mobile Navigation */}
       <MobileNav 
         onEarthClick={() => {
-          setShowMobileCountryList(false);
+          // Earth button now opens country selector
+          setShowMobileCountrySelector(true);
           setIsMoonRTSOpen(false);
           setIsMarsModalOpen(false);
           setIsModalOpen(false);
           setCurrentView('earth');
         }}
-        onSimulateClick={() => {
-          setShowMobileCountryList(true);
-          setCurrentView('simulate');
-        }}
         onMoonClick={() => {
           // Show desktop requirement message on mobile
           setShowDesktopMessage(true);
           setTimeout(() => setShowDesktopMessage(false), 5000);
-          setCurrentView('earth');
+          setCurrentView('moon');
         }}
         onMarsClick={() => {
           setShowMobileCountryList(false);

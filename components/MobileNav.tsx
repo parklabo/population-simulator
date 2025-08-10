@@ -5,15 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface MobileNavProps {
   onEarthClick: () => void;
-  onSimulateClick: () => void;
   onMoonClick: () => void;
   onMarsClick: () => void;
-  currentView: 'earth' | 'moon' | 'mars' | 'simulate';
+  currentView: 'earth' | 'moon' | 'mars';
 }
 
 export default function MobileNav({ 
   onEarthClick,
-  onSimulateClick, 
   onMoonClick, 
   onMarsClick,
   currentView 
@@ -27,7 +25,6 @@ export default function MobileNav({
   
   const navItems = [
     { id: 'earth', icon: '🌍', label: 'Earth', onClick: onEarthClick },
-    { id: 'simulate', icon: '📊', label: 'Simulate', onClick: onSimulateClick },
     { id: 'moon', icon: '🌙', label: 'Moon', onClick: onMoonClick },
     { id: 'mars', icon: '🚀', label: 'Mars', onClick: handleMarsClick },
   ];
@@ -39,7 +36,7 @@ export default function MobileNav({
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/20 md:hidden z-[100] safe-bottom"
     >
-      <div className="grid grid-cols-4 gap-0.5 px-1 py-1">
+      <div className="grid grid-cols-3 gap-0.5 px-1 py-1">
         {navItems.map((item) => (
           <motion.button
             key={item.id}
