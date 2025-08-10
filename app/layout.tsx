@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   creator: 'YonYonWare',
   publisher: 'YonYonWare',
   keywords: ['population', 'simulation', 'demographics', 'birth rate', 'YonYonWare'],
+  metadataBase: new URL('https://population-simulator.park-labs.com'),
   openGraph: {
     title: 'Population Simulator | YonYonWare',
     description: 'Visualize demographic futures with real-time birth rate simulations',
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
     siteName: 'Population Simulator',
     images: [
       {
-        url: 'https://population-simulator.park-labs.com/web-app-manifest-512x512.png',
+        url: '/web-app-manifest-512x512.png',
         width: 512,
         height: 512,
         alt: 'Population Simulator - Visualize demographic futures',
@@ -35,7 +36,7 @@ export const metadata: Metadata = {
     title: 'Population Simulator | YonYonWare',
     description: 'Visualize demographic futures with real-time birth rate simulations',
     creator: '@YoungsuPark6',
-    images: ['https://population-simulator.park-labs.com/web-app-manifest-512x512.png'],
+    images: ['/web-app-manifest-512x512.png'],
   },
   icons: {
     icon: [
