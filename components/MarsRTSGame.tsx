@@ -588,7 +588,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
-            className="relative bg-gradient-to-b from-gray-900 via-blue-950/20 to-gray-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-3xl max-h-[90vh] sm:max-h-none border border-cyan-500/20 shadow-2xl overflow-auto"
+            className="relative bg-gradient-to-b from-gray-900 via-blue-950/20 to-gray-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-3xl max-h-[90vh] sm:max-h-none border border-cyan-500/20 shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Animated background pattern */}
@@ -616,7 +616,7 @@ export default function MarsRTSGame({ isOpen, onClose }: MarsRTSGameProps) {
               transition={{ duration: 5, repeat: Infinity }}
             />
             
-            <div className="relative p-4 sm:p-8">
+            <div className="relative p-4 sm:p-8 max-h-[85vh] overflow-y-auto overflow-x-hidden">
               {/* Title Section - Compact */}
               <div className="text-center mb-6">
                 <motion.div
