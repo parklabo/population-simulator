@@ -9,7 +9,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'Population Simulator | YonYonWare',
-  description: 'Visualize demographic futures with real-time birth rate simulations. Created by YonYonWare.',
+  description: 'Visualize demographic futures with birth rate simulations. Created by YonYonWare.',
   authors: [{ name: 'YonYonWare' }],
   creator: 'YonYonWare',
   publisher: 'YonYonWare',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://population-simulator.park-labs.com'),
   openGraph: {
     title: 'Population Simulator | YonYonWare',
-    description: 'Visualize demographic futures with real-time birth rate simulations',
+    description: 'Visualize demographic futures with birth rate simulations',
     url: 'https://population-simulator.park-labs.com',
     siteName: 'Population Simulator',
     images: [
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Population Simulator | YonYonWare',
-    description: 'Visualize demographic futures with real-time birth rate simulations',
+    description: 'Visualize demographic futures with birth rate simulations',
     creator: '@YoungsuPark6',
-    images: ['/web-app-manifest-512x512.png'],
+    images: ['/og-image.png'],
   },
   icons: {
     icon: [
