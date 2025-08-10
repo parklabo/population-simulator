@@ -7,6 +7,7 @@ import { worldCountries, getCountryColor, getCrisisLevel, CountryData } from '@/
 import SimulatorModal from '@/components/SimulatorModal';
 import MarsColonyModal from '@/components/MarsColonyModal';
 import MarsRTSGame from '@/components/MarsRTSGame';
+import GlobeFlagMode, { createFlagElement } from '@/components/GlobeFlagMode';
 
 // Dynamic imports for client-side only components
 const Globe = dynamic(() => import('react-globe.gl'), { 
@@ -56,6 +57,11 @@ export default function Home() {
   const [currentView, setCurrentView] = useState<'earth' | 'moon' | 'mars' | 'simulate'>('earth');
   const [showMobileCountryList, setShowMobileCountryList] = useState(false);
   const [showDesktopMessage, setShowDesktopMessage] = useState(false);
+  
+  // Flag display states
+  const [showFlags, setShowFlags] = useState(false);
+  const [flagDisplayMode, setFlagDisplayMode] = useState<'flags' | 'dots' | 'both'>('dots');
+  const [flagSize] = useState<'small' | 'medium' | 'large'>('medium');
   
   // Load world topology
   useEffect(() => {
@@ -141,8 +147,8 @@ export default function Home() {
           hexPolygonMargin={0.3}
           hexPolygonColor={() => '#ffffff10'}
           
-          // Points for countries
-          pointsData={countryPoints}
+          // Points for countries (show when not in flags-only mode)
+          pointsData={flagDisplayMode !== 'flags' ? countryPoints : []}
           pointAltitude={0.01}
           pointColor="color"
           pointRadius="size"
@@ -160,12 +166,35 @@ export default function Home() {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onPointHover={(point: any) => setHoveredCountry(point?.country || null)}
           
+          // HTML Elements for flags (show when in flags or both mode)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          htmlElementsData={flagDisplayMode !== 'dots' ? countryPoints : []}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          htmlElement={(d: any) => {
+            const el = document.createElement('div');
+            el.innerHTML = createFlagElement(d.country, flagSize);
+            el.style.pointerEvents = 'none';
+            // Add click handler
+            el.onclick = () => handleCountryClick(d);
+            return el;
+          }}
+          
           // Atmosphere
           showAtmosphere={true}
           atmosphereColor="#3b82f6"
           atmosphereAltitude={0.2}
         />
       </div>
+      
+      {/* Flag Mode Control */}
+      <GlobeFlagMode 
+        isEnabled={showFlags}
+        onToggle={() => {
+          setShowFlags(!showFlags);
+          setFlagDisplayMode(!showFlags ? 'both' : 'dots');
+        }}
+        selectedCountry={selectedCountry}
+      />
       
       {/* UI Overlay */}
       <div className="absolute inset-0 pointer-events-none">

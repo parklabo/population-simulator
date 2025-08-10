@@ -307,4 +307,64 @@ html {
       max-height: 90vh !important;
     }
   }
+  
+  /* Flag display animations */
+  .flag-container {
+    @apply relative flex items-center justify-center;
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .flag-emoji {
+    @apply select-none cursor-pointer transition-transform duration-300;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  }
+  
+  .flag-emoji:hover {
+    @apply scale-125;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
+  }
+  
+  /* Floating animation for flags */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+  
+  /* Pulse animation for critical countries */
+  .animate-pulse-slow {
+    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+  
+  /* Flag glow effect */
+  .flag-glow {
+    @apply absolute inset-0 rounded-full opacity-50;
+    background: radial-gradient(circle, currentColor 0%, transparent 70%);
+    filter: blur(8px);
+  }
+  
+  /* Critical country indicator */
+  .critical-indicator {
+    @apply absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full;
+    animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  
+  @keyframes ping {
+    75%, 100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
 }
