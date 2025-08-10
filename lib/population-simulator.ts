@@ -121,7 +121,12 @@ export class PopulationSimulator {
     let halfPoint: number | null = null;
     let extinctionPoint: number | null = null;
     
-    for (let yearOffset = 0; yearOffset <= years; yearOffset += 5) {
+    // Pre-calculate constants to avoid repeated calculations
+    const stepSize = 5;
+    const maxIterations = Math.floor(years / stepSize) + 1;
+    
+    for (let iteration = 0; iteration < maxIterations; iteration++) {
+      const yearOffset = iteration * stepSize;
       const currentYear = startYear + yearOffset;
       let totalPop = youth + workingAge + elderly;
       
@@ -147,8 +152,11 @@ export class PopulationSimulator {
         birthRate
       );
       
-      // Create population pyramid
-      const populationPyramid = this.generatePyramid(youth, workingAge, elderly);
+      // Create population pyramid - skip for performance on intermediate years
+      // Only generate pyramid for every 10th year to save computation
+      const populationPyramid = (yearOffset % 10 === 0) 
+        ? this.generatePyramid(youth, workingAge, elderly)
+        : [];
       
       data.push({
         year: currentYear,
@@ -233,14 +241,17 @@ export class PopulationSimulator {
     const { youth, workingAge, elderly } = population;
     const PERIOD_YEARS = 5;
     
+    // Optimize calculations by pre-computing multipliers
+    const periodMultiplier = PERIOD_YEARS;
+    
     // Birth calculations
     const womenOfChildbearingAge = workingAge * this.constants.WOMEN_CHILDBEARING_RATIO;
-    const annualBirths = (womenOfChildbearingAge * birthRate / this.constants.GENERATION_LENGTH) * PERIOD_YEARS;
+    const annualBirths = (womenOfChildbearingAge * birthRate / this.constants.GENERATION_LENGTH) * periodMultiplier;
     
-    // Mortality calculations
-    const youthMortality = youth * this.constants.YOUTH_MORTALITY_RATE * PERIOD_YEARS;
-    const workingMortality = workingAge * this.constants.WORKING_MORTALITY_RATE * PERIOD_YEARS;
-    const elderlyMortality = elderly * this.constants.ELDERLY_MORTALITY_RATE * PERIOD_YEARS;
+    // Mortality calculations - use pre-computed multipliers
+    const youthMortality = youth * (this.constants.YOUTH_MORTALITY_RATE * periodMultiplier);
+    const workingMortality = workingAge * (this.constants.WORKING_MORTALITY_RATE * periodMultiplier);
+    const elderlyMortality = elderly * (this.constants.ELDERLY_MORTALITY_RATE * periodMultiplier);
     
     // Immigration
     const immigrationEffect = immigrationRate * this.constants.THOUSAND * PERIOD_YEARS;

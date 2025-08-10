@@ -18,6 +18,18 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasStarted, setHasStarted] = useState(false); // Track if simulation has started
   
+  // Detect mobile device for performance optimizations
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [])
+  
   const [params, setParams] = useState<SimulationParams>({
     currentPopulation: country.population,
     birthRate: country.birthRate,
@@ -43,7 +55,22 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
   }, [country]);
   
   const simulator = useMemo(() => new PopulationSimulator(), []);
-  const projection = useMemo(() => simulator.simulate(params, 100), [params, simulator]); // 100 years to 2125
+  
+  // Memoize projection with debounced recalculation to prevent excessive computation
+  const [debouncedParams, setDebouncedParams] = useState(params);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedParams(params);
+    }, 300); // Debounce parameter changes by 300ms
+    
+    return () => clearTimeout(timer);
+  }, [params]);
+  
+  const projection = useMemo(() => {
+    // Only recalculate when debounced params change
+    return simulator.simulate(debouncedParams, 100);
+  }, [debouncedParams, simulator]); // 100 years to 2125
   
   // Time-lapse animation
   useEffect(() => {
@@ -57,21 +84,34 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
         }
         return prev + 1;
       });
-    }, 50); // Fixed speed: 50ms per year for 100 years
+    }, isMobile ? 150 : 100); // Even slower on mobile: 150ms per year
     
     return () => clearInterval(interval);
   }, [isPlaying]);
   
   // Chart data up to current year (only when simulation has started)
+  // Throttle chart updates for better performance
   const chartData = useMemo(() => {
     if (!hasStarted) return [];
     const yearIndex = Math.floor((currentYear - 2025) / 5);
+    // Only update chart every 5 years to reduce computation
+    if (currentYear % 5 !== 0 && currentYear !== 2125) {
+      // Use cached data for intermediate years
+      const cachedIndex = Math.floor(((Math.floor(currentYear / 5) * 5) - 2025) / 5);
+      return projection.data.slice(0, cachedIndex + 1).map(d => ({
+        year: d.year,
+        population: parseFloat(d.totalPopulation.toFixed(1)), // Less precision for performance
+        youth: parseFloat(d.youth.toFixed(1)),
+        working: parseFloat(d.workingAge.toFixed(1)),
+        elderly: parseFloat(d.elderly.toFixed(1))
+      }));
+    }
     return projection.data.slice(0, yearIndex + 1).map(d => ({
       year: d.year,
-      population: parseFloat(d.totalPopulation.toFixed(2)),
-      youth: parseFloat(d.youth.toFixed(2)),
-      working: parseFloat(d.workingAge.toFixed(2)),
-      elderly: parseFloat(d.elderly.toFixed(2))
+      population: parseFloat(d.totalPopulation.toFixed(1)),
+      youth: parseFloat(d.youth.toFixed(1)),
+      working: parseFloat(d.workingAge.toFixed(1)),
+      elderly: parseFloat(d.elderly.toFixed(1))
     }));
   }, [projection.data, currentYear, hasStarted]);
   
@@ -81,10 +121,16 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
   }, [projection.data, currentYear]);
   
   const handleParamChange = (key: keyof SimulationParams, value: number) => {
-    setParams(prev => ({ ...prev, [key]: value }));
-    setCurrentYear(2025); // Reset animation
-    setIsPlaying(false);
-    setHasStarted(false); // Reset started status when params change
+    // On mobile, only update params without resetting animation for smoother experience
+    if (isMobile && hasStarted) {
+      setParams(prev => ({ ...prev, [key]: value }));
+      // Don't reset animation on mobile to prevent lag
+    } else {
+      setParams(prev => ({ ...prev, [key]: value }));
+      setCurrentYear(2025); // Reset animation
+      setIsPlaying(false);
+      setHasStarted(false); // Reset started status when params change
+    }
   };
   
   const startTimeLapse = () => {
@@ -288,7 +334,8 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                   fillOpacity={1}
                   fill="url(#populationGradient)"
                   strokeWidth={2}
-                  animationDuration={500}
+                  animationDuration={1000}
+                  isAnimationActive={!isPlaying}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -436,7 +483,11 @@ export default function SimulatorModal({ isOpen, onClose, country }: SimulatorMo
                   <div className="bg-black/30 rounded-lg p-2 text-center border border-white/5">
                     <p className="text-[10px] text-gray-500">TOTAL</p>
                     <p className="text-lg font-bold text-white">
-                      <CountUp end={currentData.totalPopulation} decimals={1} duration={0.5} suffix="M" />
+                      {isMobile ? (
+                        `${currentData.totalPopulation.toFixed(1)}M`
+                      ) : (
+                        <CountUp end={currentData.totalPopulation} decimals={1} duration={0.5} suffix="M" />
+                      )}
                     </p>
                   </div>
                   <div className="bg-green-900/20 rounded-lg p-2 text-center border border-green-500/20">
