@@ -35,9 +35,9 @@ export default function MobileNav({
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/20 md:hidden z-[100] safe-bottom"
+      className="fixed bottom-0 left-0 right-0 bg-black/30 backdrop-blur-sm border-t border-white/5 md:hidden z-[100]"
     >
-      <div className="grid grid-cols-3 gap-0.5 px-1 py-1">
+      <div className="grid grid-cols-3 gap-0.5 px-1 py-0.5">
         {navItems.map((item) => (
           <motion.button
             key={item.id}
@@ -79,8 +79,6 @@ export default function MobileNav({
         ))}
       </div>
       
-      {/* iPhone home indicator safe area */}
-      <div className="h-safe-area-inset-bottom bg-black/90" />
       
       {/* Mars Toast notification */}
       <AnimatePresence>

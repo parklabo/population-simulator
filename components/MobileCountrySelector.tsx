@@ -61,13 +61,6 @@ export default function MobileCountrySelector({
     return countries;
   }, [selectedRegion, sortBy]);
 
-  // Get top critical countries for quick access
-  const criticalCountries = useMemo(() => {
-    return worldCountries
-      .filter(c => c.birthRate < 1.5)
-      .sort((a, b) => a.birthRate - b.birthRate)
-      .slice(0, 3);
-  }, []);
 
   const getCrisisColor = (birthRate: number) => {
     if (birthRate < 1.0) return 'from-red-600 to-red-500';
@@ -129,7 +122,7 @@ export default function MobileCountrySelector({
             <div className="overflow-x-auto scrollbar-hide pb-2 -mx-5 px-5">
               <div className="flex gap-2 flex-nowrap">
                 {[
-                  { value: 'all', label: 'All Regions', emoji: '🌍' },
+                  { value: 'all', label: 'All', emoji: '🌍' },
                   { value: 'asia', label: 'Asia', emoji: '🌏' },
                   { value: 'europe', label: 'Europe', emoji: '🇪🇺' },
                   { value: 'americas', label: 'Americas', emoji: '🌎' },
@@ -186,47 +179,11 @@ export default function MobileCountrySelector({
               </button>
             </div>
 
-            {/* Critical Countries - Horizontal Scroll */}
-            {selectedRegion === 'all' && (
-              <div className="mt-3">
-                <p className="text-xs text-gray-400 mb-1.5 flex items-center gap-1">
-                  <span className="text-red-500">⚠️</span> Critical
-                </p>
-                <div className="flex gap-3 overflow-x-auto scrollbar-hide">
-                  {criticalCountries.map(country => (
-                    <motion.button
-                      key={country.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        onSelectCountry(country);
-                        onClose();
-                      }}
-                      className={`flex-shrink-0 p-3 rounded-2xl shadow-lg border transition-all ${
-                        selectedCountry?.id === country.id 
-                          ? 'bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border-cyan-500/50 shadow-cyan-500/20' 
-                          : `bg-gradient-to-br from-red-500/20 to-red-600/10 border-red-500/30 hover:scale-105 shadow-red-500/10`
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 min-w-[140px]">
-                        <span className="text-3xl filter drop-shadow-md">{country.flag}</span>
-                        <div className="text-left">
-                          <p className="text-sm font-bold text-white drop-shadow-sm">{country.name}</p>
-                          <p className={`text-2xl font-black ${getCrisisTextColor(country.birthRate)} drop-shadow-lg`}>
-                            {country.birthRate}
-                          </p>
-                        </div>
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Country Grid */}
-          <div className="overflow-y-auto px-5 pb-6" style={{ maxHeight: 'calc(95vh - 220px)' }}>
-            <div className="grid gap-3">
+          <div className="overflow-y-auto px-5 pb-20" style={{ maxHeight: 'calc(95vh - 150px)' }}>
+            <div className="grid gap-2">
               {filteredCountries.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-gray-400">No countries found</p>
@@ -251,26 +208,24 @@ export default function MobileCountrySelector({
                     }`}
                   >
                     {/* Background Gradient based on crisis level */}
-                    <div className={`absolute inset-0 opacity-20 bg-gradient-to-r ${getCrisisColor(country.birthRate)}`} />
+                    <div className={`absolute inset-0 opacity-15 bg-gradient-to-r ${getCrisisColor(country.birthRate)}`} />
                     
-                    <div className="relative p-4">
+                    <div className="relative p-3">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3.5">
-                          <span className="text-4xl filter drop-shadow-md">{country.flag}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-3xl filter drop-shadow-md">{country.flag}</span>
                           <div className="text-left">
-                            <p className="font-bold text-white text-lg drop-shadow-sm">{country.name}</p>
-                            <div className="flex items-center gap-3 mt-0.5">
-                              <span className="text-xs text-gray-300">
-                                {country.population.toFixed(1)}M people
-                              </span>
-                            </div>
+                            <p className="font-bold text-white text-base drop-shadow-sm">{country.name}</p>
+                            <span className="text-[11px] text-gray-400">
+                              {country.population.toFixed(1)}M people
+                            </span>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className={`text-3xl font-black ${getCrisisTextColor(country.birthRate)} drop-shadow-lg`}>
+                          <div className={`text-2xl font-black ${getCrisisTextColor(country.birthRate)} drop-shadow-lg`}>
                             {country.birthRate}
                           </div>
-                          <div className={`text-[10px] uppercase tracking-wider font-bold ${getCrisisTextColor(country.birthRate)}`}>
+                          <div className={`text-[9px] uppercase tracking-wide font-bold ${getCrisisTextColor(country.birthRate)}`}>
                             {getCrisisLevel(country.birthRate)}
                           </div>
                         </div>
